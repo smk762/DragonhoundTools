@@ -1,0 +1,166 @@
+#!/usr/bin/env python3
+import os
+import sys
+import requests
+from pprint import pprint
+
+iguana_ip = "http://127.0.0.1:7776"
+agents = ['dpow', 'pax', 'passthru', 'zcash', 'komodo',
+        'dex', 'basilisk', 'bitcoinrpc', 'iguana',
+        'jumblr', 'InstantDEX', 'tradebot', 'SuperNET',
+        'mouse', 'keyboard', 'hash', 'hmac']
+iguana_methods = ['splitfunds', 'makekeypair', 'rates', 'rate',
+                'prices', 'snapshot', 'dividends', 'passthru',
+                'initfastfind', 'dpow', 'peers', 'maxpeers',
+                'getconnectioncount', 'addcoin', 'validate',
+                'removecoin', 'startcoin', 'pausecoin', 
+                'stopcoin', 'addnode', 'addnotary', 'persistent',
+                'removenode', 'oneshot', 'nodestatus', 'balance',
+                'spendmsig', 'bundleaddresses', 'bundlehashes',
+                'PoSweights', 'stakers']
+SuperNET_methods = ['help', 'utime2utc', 'utc2utime', 'getpeers'
+                    'mypeers', 'stop', 'saveconf', 'layer',
+                    'bitcoinrpc', 'myipaddr', 'setmyipaddr',
+                    'login', 'logout', 'activehandle', 'encryptjson',
+                    'decryptjson', 'html', 'rosetta', 'keypair',
+                    'priv2pub', 'wif2priv', 'priv2wif', 'addr2rmd160',
+                    'rmd160conv', 'cipher', 'decipher',
+                    'broadcastcipher', 'broadcastdecipher',
+                    'multicastcipher', 'multicastdecipher']
+dpow_methods = ['pending', 'notarizations', 'notarychains'
+                'active', 'ratify', 'cancelratify',
+                'bindaddr', 'fundnotaries', 'ipaddrs']
+pax_methods = ['start']
+passthru_methods = ['paxfiats']
+zcash_methods = ['passthru']
+komodo_methods = ['passthru']
+dex_methods = ['kvsearch', 'kvupdate', 'send', 'gettransaction',
+                'getinfo', 'getnotaries', 'alladdresses', 'getbestblockhash',
+                'getblockhash', 'getblock', 'sendrawtransaction', 'gettxout',
+                'importaddress', 'validateaddress', 'checkaddress', 'listunspent',
+                'listtransactions', 'listunspent2', 'listtransactions2', 'gettxin',
+                'listspent', 'getbalance', 'explorer', 'getmessage', 'psock']
+basilisk_methods = ['genesis_opreturn', 'history', 'paxfiats', 'balances',
+                    'value', 'rawtx', 'refresh', 'cancelrefresh', 
+                    'utxorawtx', 'utxocombine', 'getmessage',
+                    'sendmessage', 'geckoheaders', 'geckoblock',
+                    'geckotx', 'geckoget', 'addrelay', 'dispatch',
+                    'publish', 'subscribe', 'forward', 'mailbox']
+bitcoinrpc_methods = [
+                    'getinfo', 'getblockcount', 'getdifficulty', 'getbestblockhash',
+                    'getblockhash', 'getblock', 'getrawtransaction', 'gettransaction',
+                    'gettxout', 'listunspent', 'decodescript', 'decoderawtransaction',
+                    'validaterawtransaction', 'createrawtransaction', 'validatepubkey',
+                    'validateaddress', 'walletlock', 'walletpassphrase', 'encryptwallet',
+                    'walletpassphrasechange', 'dumpwallet', 'backupwallet', 'importwallet',
+                    'getnewaddress', 'importprivkey', 'importaddress', 'dumpprivkey',
+                    'listtransactions', 'listreceivedbyaddress', 'listreceivedbyaccount',
+                    'listaccounts', 'listaddressgroupings', 'getreceivedbyaddress',
+                    'getreceivedbyaccount', 'getbalance', 'getaddressesbyaccount',
+                    'getaccount', 'getaccountaddress', 'setaccount', 'createmultisig',
+                    'addmultisigaddress', 'settxfee', 'checkwallet', 'repairwallet',
+                    'signrawtransaction', 'signmessage', 'verifymessage',
+                    'sendrawtransaction', 'sendfrom', 'sendmany', 'sendtoaddress',
+                    'lockunspent', 'listlockunspent', 'submitblock', 'listsinceblock',
+                    'gettxoutsetinfo', 'getrawchangeaddress', 'move']
+jumblr_methods = ['setpassphrase', 'status', 'runsilent', 'totransparent']
+InstantDEX_methods = ['allcoins', 'available', 'request', 'incoming'
+                    'automatched', 'accept', 'buy', 'sell', 'withdraw',
+                    'apikeypair', 'setuserid', 'balance', 'orderstatus',
+                    'cancelorder', 'openorders', 'tradehistory', 
+                    'orderbook', 'pollgap', 'allexchanges', 'allpairs',
+                    'supports', 'init', 'getswaplist', 'smartaddresses',
+                    'smartaddress', 'DEXratio']
+tradebot_methods = ['liquidity', 'amlp', 'notlp', 'gensvm',
+                    'openliquidity', 'aveprice', 'monitor',
+                    'monitorall', 'unmonitor', 'accumulate',
+                    'divest', 'activebots', 'status', 'pause',
+                    'stop', 'resume', 'allbalances', 'anchor',
+                    'portfolio', 'goals']
+mouse_methods = ['image', 'change', 'click', 'close', 'leave']
+keyboard_methods = ['key']
+hash_methods = ['hex', 'unhex', 'curve25519_pair', 'NXT',
+                'curve25519', 'crc32', 'base64_encode', 'base64_decode',
+                'rmd160_sha256', 'sha256_sha256', 'sha224', 'sha256',
+                'sha384', 'sha512', 'rmd128', 'rmd160', 'rmd256', 'rmd320',
+                'sha1', 'md2', 'md4', 'md5', 'tiger192_3', 'whirlpool']
+hmac_methods = ['sha224', 'sha256', 'sha384', 'sha512', 'rmd128',
+                'rmd160', 'rmd256', 'rmd320', 'sha1', 'md2',
+                'md4', 'md5', 'tiger192_3', 'whirlpool']
+
+def SuperNET_method(iguana_ip, method):
+    params = {"agent":"SuperNET",'method': method,}
+    r = requests.post(iguana_ip, json=params)
+    return r
+
+def iguana_method(iguana_ip, method):
+    params = {'agent':'iguana', 'userpass': user_pass, 'method': method,}
+    r = requests.post(iguana_ip, json=params)
+    return r
+
+def dpow_method(iguana_ip, method):
+    params = {'userpass': user_pass, 'method': method,}
+    r = requests.post(iguana_ip, json=params)
+    return r
+
+def help_method():
+    r = SuperNET_method(iguana_ip, 'help')
+    try:
+        return r.json()['result']['API']
+    except:
+        return r.text
+    sys.exit(0)
+
+def no_method():
+    api_json = help_method()
+    for api_help in api_json:
+        pprint(api_help['method'], indent=1)
+    print("No method parameter! Use one from the list above")
+    print('Use `./iguana-cli help [method]` to see specific method params')
+    print("For an agent specific method list, use `./iguana-cli help [agent]`")
+    print("Available agents are: 'dpow', 'pax', 'passthru', 'zcash', 'komodo', 'dex', 'basilisk', 'bitcoinrpc', 'iguana', 'jumblr', 'InstantDEX', 'tradebot', 'SuperNET', 'mouse', 'keyboard', 'hash', 'hmac'")
+    sys.exit(0)
+
+def no_help_method():
+    api_json = help_method()
+    for api_help in api_json:
+        pprint(api_help, indent=1)
+    sys.exit(0)
+
+def single_help_method(method):
+    api_json = help_method()
+    if method in agents:
+        print("=== "+method+" methods ===")
+        for api_help in api_json:
+            if 'agent' in api_help:
+                if api_help['agent'] == method:
+                    pprint(api_help['method'], indent=1)
+        sys.exit(0)
+    for api_help in api_json:
+        if api_help['method'] == method:
+            return api_help
+    print("Method not recognised")
+    for api_help in api_json:
+        pprint(api_help['method'], indent=1)
+    sys.exit(0)
+
+try:
+    method = sys.argv[1]
+except:
+    no_method()
+    method = ''
+
+if method == "help":
+    try:
+        method_help = sys.argv[2]
+        response = single_help_method(method_help)
+        pprint(response, indent=1)
+    except Exception as e:
+        print(e)
+        method_help = ''
+        r = no_help_method()
+print()
+#elif method in iguana_methods:
+#elif method in SuperNET_methods:
+#elif method in dpow_methods:
+#elif method in hash_methods:

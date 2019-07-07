@@ -1,0 +1,197 @@
+#!/bin/bash
+#
+# Suggest using with this command: watch --color -n 60 ./status
+# From https://github.com/chainstrike/nntools/blob/master/status.sh
+# COMPONENTS BORROWED FROM CHAINSTRIKE AND LABS
+# Stats script for Komodo Notary Nodes
+# Requires jq v1.5+ and komodo-cli, installed and symlinked to /usr/local/bin
+# 
+cd "${0%/*}"
+#==Options - Only Change These==
+
+#Seconds in display loop, change to false if you don't want it to loop
+sleepytime=false
+
+#How many transactions back to scan for notarizations
+txscanamount=77777
+
+# Just to be sure printf doesn't reject with "invalid number" error because of decimal separator
+LC_NUMERIC="en_US.UTF-8"
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+NC='\033[0m' # No Color
+
+#==End Options==
+
+#Do not change below for any reason!
+#The BTC and KMD address here must remain the same. Do not need to enter yours!
+utxoamt=0.00010000
+ntrzdamt=-0.00083600
+kmdntrzaddr=RXL3YXG2ceaB6C5hfJcN4fvmLH2C34knhA
+timefilter2=1525513998
+
+format="%-12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s"
+
+printf "Notary Node Status\n"
+printf "==================\n"
+
+
+function timeSince () {
+    local currentimestamp=$(date +%s)
+    local timecompare=$1
+
+    if [ ! -z $timecompare ] && [[ $timecompare != "null" ]]
+    then
+        local t=$((currentimestamp-timecompare))
+
+        local d=$((t/60/60/24))
+        local h=$((t/60/60%24))
+        local m=$((t/60%60))
+        local s=$((t%60))
+
+        if [[ $d > 0 ]]; then
+            echo -n "${d}d"
+        fi
+        if [[ $h > 0 ]]; then
+            echo -n "${h}h"
+        fi
+        if [[ $d = 0 && $m > 0 ]]; then
+            echo -n "${m}m"
+        fi
+        if [[ $d = 0 && $h = 0 && $m = 0 ]]; then
+            echo -n "${s}s"
+        fi
+
+    fi
+}
+
+function show_walletsize () {
+  if [ "$1" != "KMD" ] && [ "$1" != "BTC" ]; then
+    if [ -f ~/.komodo/$1/wallet.dat ]; then
+      # SIZE=$(stat ~/.komodo/$1/wallet.dat | grep -Po "Size: \d*" | cut -d" " -f2)
+      # Pattern "Size: " - is only for english locale, so, we won't use it.
+
+      SIZE=$(stat --printf="%s" ~/.komodo/${1}/wallet.dat)
+    else
+      SIZE=0
+    fi
+  elif [ "$1" = "BTC" ]; then
+    SIZE=$(stat --printf="%s" ~/.bitcoin/wallet.dat)
+  elif [ "$1" = "KMD" ]; then
+    SIZE=$(stat --printf="%s" ~/.komodo/wallet.dat)
+  fi
+
+  OUTSTR=$(echo $SIZE | numfmt --to=si --suffix=B)
+
+
+  printf "%16b\n" $OUTSTR
+
+}
+
+function process_check () {
+  ps_out=`ps -ef | grep $1 | grep -v 'grep' | grep -v $0`
+  result=$(echo $ps_out | grep "$1")
+ if [[ "$result" != "" ]];then
+    echo "here"
+    return 1
+  else
+    echo "other"
+    return 0
+fi
+}
+
+UP="$(/usr/bin/uptime)"
+
+echo "Server Uptime: $UP"
+
+processlist=(
+'iguana'
+'komodod'
+'PIZZA'
+'TXSCLCC'
+'BEER'
+)
+
+count=0
+totalntrzd=0
+now=$(date +"%H:%M")
+
+printf "\n\n"
+printf "%-12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s\n" "-ASSET-" "-STATE-" "-BLOCKS-" "-UTXO-" "-DUST-" "-BALANCE-" "-TX COUNT-" "-WALLET-" "-NTX-COUNT-" "-LAST-NTX-" "-CONNECTED-";
+
+count=0
+while [ "x${processlist[count]}" != "x" ]
+do
+  if [ $(process_check $processlist[count]) ]
+  	then
+    	STATE="Running"
+		ASSET="${processlist[$count]}"
+        BLOCKS="-"
+		UTXOs="-"
+		DUST="-"
+		BAL="-"
+		TX_COUNT="-"
+		WALLET_SIZE="-"
+		NTX_COUNT="-"
+		LAST_NTX="-"
+		CONNECTIONS="-"
+	    if [ "$count" = "1" ]
+	    	then
+	            cd ~/komodo/src
+			    kmdinfo=$(komodo-cli getinfo)
+			    kmdtxinfo=$(komodo-cli listtransactions "" $txscanamount)
+			    kmdlastntrztime=$(echo $kmdtxinfo | jq -r --arg address "$kmdntrzaddr" '[.[] | select(.address==$address)] | sort_by(.time) | last | "\(.time)"')
+	            UTXOs="$(./komodo-cli -rpcclienttimeout=15 listunspent | grep .00010000 | wc -l)"
+	            DUST="$(./komodo-cli -rpcclienttimeout=15  listunspent|grep amount|awk '{print $2}'|sed s/.$//|awk '$1 < 0.0001'|wc -l)"
+	            BAL="$(printf "%12.4f" $(echo $kmdinfo | jq .balance))"
+	            TX_COUNT="$(./komodo-cli -rpcclienttimeout=15 getwalletinfo | jq '.txcount')"
+	            WALLET_SIZE="$(show_walletsize KMD)"
+	            BLOCKS="$(echo $kmdinfo | jq .blocks)"
+	            NTX_COUNT="-"
+	            LAST_NTX="$(timeSince $kmdlastntrztime)"
+	            CONNECTIONS="$(echo $kmdinfo | jq .connections)"
+
+	    fi
+	    if [ "$count" -gt "1" ]
+	    	then
+	            cd ~/komodo/src
+	            info=$(komodo-cli -ac_name=${processlist[count]} getinfo)
+	            blocks=$(echo $info | jq .blocks)
+	            txinfo=$(komodo-cli -ac_name=${processlist[count]} listtransactions "" $txscanamount)
+	            lastntrztime=$(echo $txinfo | jq -r --arg address "$kmdntrzaddr" '[.[] | select(.address==$address)] | sort_by(.time) | last | "\(.time)"')
+	            acntrzd=$(echo $txinfo | jq --arg address "$kmdntrzaddr" --arg timefilter $timefilter2 '[.[] | select(.time>=($timefilter|tonumber) and .address==$address and .category=="send")] | length')
+	            totalntrzd=$(( $totalntrzd + $acntrzd ))
+	            UTXOs="$(./komodo-cli -rpcclienttimeout=15 -ac_name=${processlist[count]} listunspent | grep .00010000 | wc -l)"
+	            DUST="$(./komodo-cli -ac_name=${processlist[count]} -rpcclienttimeout=15  listunspent|grep amount|awk '{print $2}'|sed s/.$//|awk '$1 < 0.0001'|wc -l)"
+	            BAL="$(printf "%12.4f" $(echo $info | jq .balance))"
+	            TX_COUNT="$(./komodo-cli -rpcclienttimeout=15 -ac_name=${processlist[count]} getwalletinfo | jq '.txcount')"
+		    	WALLET_SIZE="$(show_walletsize ${processlist[count]})"
+	            BLOCKS="$(echo $info | jq .blocks)"
+		    	NTX_COUNT="$acntrzd"
+		    	LAST_NTX="$(timeSince $lastntrztime)"
+		    	CONNECTIONS="$(echo $info | jq .connections)"
+		fi
+
+		if [ -z $LAST_NTX ]
+			then
+			LAST_NTX="-"
+		fi
+		printf "$format\n" \
+		"$(printf $ASSET)" \
+		"$(printf $STATE)" \
+        "$(printf $BLOCKS)" \
+		"$(printf $UTXOs)" \
+		"$(printf $DUST)" \
+		"$(printf $BAL)" \
+		"$(printf $TX_COUNT)" \
+		"$(printf $WALLET_SIZE)" \
+		"$(printf $NTX_COUNT)" \
+		"$(printf $LAST_NTX)" \
+		"$(printf $CONNECTIONS)"
+  	else
+	    printf "${RED} Not Running ${NC}\n"
+	fi
+	count=$(( $count +1 ))
+done
+

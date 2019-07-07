@@ -1,0 +1,8 @@
+{
+	"iguanaport":"7776",
+	"nn_Radd":"Enter your Primary Notary Node Address",
+	"3rd_Radd":"Enter your 3rd Party Notary Node Address",
+	"sweep_Radd":"Enter your Sweep Address",
+	"komodo_ac_json":"komodo/src/assetchains.json",
+	"labs_ac_json":"StakedNotary/assetchains.json"
+}

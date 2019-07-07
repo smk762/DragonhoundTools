@@ -1,0 +1,9 @@
+rpcuser=a_secure_user
+rpcpassword=a_secure_password
+server=1
+daemon=1
+txindex=1
+litemode=1
+bind=127.0.0.1
+rpcbind=127.0.0.1
+rpcallowip=127.0.0.1
