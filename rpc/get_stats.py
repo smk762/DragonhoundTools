@@ -15,7 +15,7 @@ timefilter2=1525513998
 
 print(\
     "|"+'{:^11}'.format('COIN')+"|"+'{:^9}'.format('BALANCE')+ \
-    "|"+'{:^7}'.format('TX')+"|"+'{:^9}'.format('SYNC %')+ \
+    "|"+'{:^7}'.format('TX')+"|"+'{:^8}'.format('SYNC %')+ \
     "|"+'{:^11}'.format('LAST NTX')+"|"+'{:^9}'.format('24H NTX')+ \
     "|"+'{:^6}'.format('CONN')+ \
     "|")
@@ -23,18 +23,11 @@ for coin in coinlist:
     coin_str = '{:^11}'.format(coin) 
     wallet_info = rpc[coin].getwalletinfo()
     balance = '{:^9}'.format(str(wallet_info['balance'])[:7])
-    info = rpc[coin].getinfo()
-    blocks = info['blocks']
     if this_node == 'third_party':
         txcount = '{:^7}'.format(str(len(rpc[coin].listtransactions())))
-        longestchain = info['notarized']
     else:
         txcount = '{:^7}'.format(str(wallet_info['txcount']))
-        longestchain = info['longestchain']
-    try:
-        sync_pct = '{:^9}'.format(str(blocks/longestchain*100)[:5]+"%")
-    except:
-        sync_pct = '{:^9}'.format("N/A")
+    sync_pct = '{:^8}'.format(str(rpc[coin].getblockchaininfo()['verificationprogress']*100)[:5]+"%")
 
     last_ntx_time = 0
     ntx_24hr = 0
