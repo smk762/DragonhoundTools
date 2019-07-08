@@ -221,7 +221,8 @@ with open(coins_json) as file:
     assetchains = json.load(file)
 for chain in assetchains:
     coinlist.append(chain[attrib])
-coinlist.append('KMD')
+if this_node != 'third_party':
+    coinlist.append('KMD')
 
 intervals = (
     ('d', 86400),
