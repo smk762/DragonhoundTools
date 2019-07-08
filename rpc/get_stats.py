@@ -32,7 +32,7 @@ for coin in coinlist:
         txcount = '{:^7}'.format(str(wallet_info['txcount']))
         longestchain = info['longestchain']
     try:
-        sync_pct = '{:^9}'.format(str(blocks/longestchain*100)[:4]+"%")
+        sync_pct = '{:^9}'.format(str(blocks/longestchain*100)[:5]+"%")
     except:
         sync_pct = '{:^9}'.format("N/A")
 
