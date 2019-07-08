@@ -11,8 +11,7 @@ txscanamount = 10080 # one week. If not NTX for this long, something broken!
 utxoamt=0.00010000
 ntrzdamt=-0.00083600
 timefilter2=1525513998
-
-
+print("-----------------------------------------------------------------------------------")    
 print(\
     "|"+'{:^11}'.format('COIN')+"|"+'{:^9}'.format('BALANCE')+ \
     "|"+'{:^6}'.format('UTXO')+"|"+'{:^6}'.format('DUST')+ \
@@ -20,6 +19,7 @@ print(\
     "|"+'{:^11}'.format('LAST NTX')+"|"+'{:^9}'.format('24H NTX')+ \
     "|"+'{:^6}'.format('CONN')+ \
     "|")
+print("-----------------------------------------------------------------------------------")    
 for coin in coinlist:
     coin_str = '{:^11}'.format(coin) 
     wallet_info = rpc[coin].getwalletinfo()
@@ -53,3 +53,4 @@ for coin in coinlist:
               +txcount+"|"+sync_pct+"|" \
               +last_ntx+"|"+ntx_24hr+"|" \
               +connected+"|")
+print("-----------------------------------------------------------------------------------")    
