@@ -19,8 +19,8 @@ try:
 except:
     print("No config.json file!")
     print("Create one using the template:")
-    print("cp "+home+"/DragonhoundTools/config_example.json "+home+"/DragonhoundTools/config.json")
-    print("nano" +home+"/DragonhoundTools/config.json")
+    print("cp "+home+"/DragonhoundTools/config/config_example.json "+home+"/DragonhoundTools/config/config.json")
+    print("nano "+home+"/DragonhoundTools/config/config.json")
     sys.exit(0)
 
 this_node = config_json['this_node']
@@ -74,7 +74,7 @@ def def_creds(chain):
     if chain == 'KMD':
         coin_config_file = str(ac_dir + '/komodo.conf')
     elif this_node == 'third_party':
-        for coin in third_party_json:
+        for coin in coins_json:
             if coin['tag'] == chain:
                 coin_config_file = str(home+'/'+coin['datadir']+'/'+coin['conf'])
     else:
@@ -238,7 +238,7 @@ def display_time(seconds, granularity=1):
                 seconds -= value * count
                 if value == 1:
                     name = name.rstrip('s')
-                result.append("{} {}".format(int(value), name))
+                result.append("{} {}".format(int(value) , name))
         time_str = ', '.join(result[:granularity])
     return time_str
 
