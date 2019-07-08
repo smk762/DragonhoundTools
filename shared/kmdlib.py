@@ -9,26 +9,33 @@ import codecs
 import platform
 from slickrpc import Proxy
 from os.path import expanduser
+ 
+# Get and set config
+cwd = os.getcwd()
 home = expanduser("~")
-operating_system = platform.system()
+try:
+    with open(home+"/DragonhoundTools/config/config.json") as j:
+        config_json = json.load(j)
+except:
+    print("No config.json file!")
+    print("Create one using the template in "+home+"/DragonhoundTools/config_example.json")
+    sys.exit(0)
 
-with open(home+"/DragonhoundTools/config/config.json") as j:
-  config_json = json.load(j)
-
+this_node = config_json['this_node']
 iguanaport = config_json['iguanaport']
 nn_Radd = config_json['nn_Radd']
+nn_ntx_Radd = config_json['nn_ntx_Radd']
+LabsNN_Radd = config_json['nn_Radd']
+third_party_Radd = config_json['third_party_Radd']
+Labs_ntx_Radd = config_json['Labs_ntx_Radd']
+sweep_Radd = config_json['sweep_Radd']
 komodo_ac_json = config_json['komodo_ac_json']
 labs_ac_json = config_json['labs_ac_json']
 third_party_json = config_json['third_party_json']
-this_node = config_json['this_node']
+j.close()
 
-if this_node == 'primary':
-    coins_json = home+'/'+komodo_ac_json
-elif this_node == 'third_party':
-    coins_json = home+'/'+third_party_json
-elif this_node == 'labs':
-    coins_json = home+'/'+labs_ac_json
-
+# Set coin config locations. Not yet tested outside Linux for 3rd party coins!
+operating_system = platform.system()
 if operating_system == 'Darwin':
     ac_dir = home + '/Library/Application Support/Komodo'
 elif operating_system == 'Linux':
@@ -37,6 +44,13 @@ elif operating_system == 'Win64' or operating_system == 'Windows':
     ac_dir = '%s/komodo/' % os.environ['APPDATA']
     import readline
 
+# set node specific coins config
+if this_node == 'primary':
+    coins_json = home+'/'+komodo_ac_json
+elif this_node == 'third_party':
+    coins_json = home+'/'+third_party_json
+elif this_node == 'labs':
+    coins_json = home+'/'+labs_ac_json
 def colorize(string, color):
     colors = {
         'blue': '\033[94m',
@@ -77,11 +91,11 @@ def def_creds(chain):
             exit(1)
     return(Proxy("http://%s:%s@127.0.0.1:%d"%(rpcuser, rpcpassword, int(rpcport))))
 
-def coins_info(coins_json_file, attrib='ac_name'):
+def coins_info(coins_json, attrib='ac_name'):
         infolist = []
         if this_node == 'third_party' and attrib == 'ac_name':
             attrib='tag'
-        with open(coins_json_file) as file:
+        with open(coins_json) as file:
             assetchains = json.load(file)
         for chain in assetchains:
             infolist.append(chain[attrib])
@@ -96,7 +110,6 @@ def is_chain_synced(chain):
         return(0)
     else:
         return([blocks, longestchain])
-
 
 def wait_confirm(coin, txid):
     start_time = time.time()
@@ -188,3 +201,20 @@ def unspent_interest(coin):
             interest_utxos += 1
             interest_value += utxo['interest']
     return [interest_utxos,interest_value]
+
+# get coins list
+coinlist = []
+if this_node == 'third_party':
+    attrib='tag'
+else:
+    attrib = 'ac_name'
+with open(coins_json) as file:
+    assetchains = json.load(file)
+for chain in assetchains:
+    coinlist.append(chain[attrib])
+coinlist.append('KMD')
+
+# Set RPCs
+rpc = {}
+for coin in coinlist:
+    rpc[coin] = def_creds(coin)
