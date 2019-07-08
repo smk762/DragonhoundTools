@@ -23,7 +23,10 @@ for coin in coinlist:
     coin_str = '{:^11}'.format(coin) 
     wallet_info = rpc[coin].getwalletinfo()
     balance = '{:^9}'.format(str(wallet_info['balance'])[:7])
-    txcount = '{:^7}'.format(str(wallet_info['txcount']))
+    if this_node == 'third_party':
+        txcount = '{:^7}'.format(str(len(rpc[coin].listtransactions())))
+    else:
+        txcount = '{:^7}'.format(str(wallet_info['txcount']))
     blocks = rpc[coin].getbalance()
     longestchain = rpc[coin].getbalance()
     try:
