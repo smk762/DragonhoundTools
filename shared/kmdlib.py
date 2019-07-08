@@ -18,7 +18,9 @@ try:
         config_json = json.load(j)
 except:
     print("No config.json file!")
-    print("Create one using the template in "+home+"/DragonhoundTools/config_example.json")
+    print("Create one using the template:")
+    print("cp "+home+"/DragonhoundTools/config_example.json "+home+"/DragonhoundTools/config.json")
+    print("nano" +home+"/DragonhoundTools/config.json")
     sys.exit(0)
 
 this_node = config_json['this_node']
