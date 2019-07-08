@@ -74,9 +74,12 @@ def def_creds(chain):
     if chain == 'KMD':
         coin_config_file = str(ac_dir + '/komodo.conf')
     elif this_node == 'third_party':
-        for coin in coins_json:
-            if coin == chain:
+        with open(coins_json) as file:
+            coins_3p = json.load(file)
+        for coin in coins_3p:
+            if coin['tag'] == chain:
                 coin_config_file = str(home+'/'+coin['datadir']+'/'+coin['conf'])
+        file.close()
     else:
         coin_config_file = str(ac_dir + '/' + chain + '/' + chain + '.conf')
     with open(coin_config_file, 'r') as f:
