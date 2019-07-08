@@ -1,0 +1,43 @@
+[{
+        "tag":"KMD",
+        "daemon":"komodod",
+        "cli":"komodo-cli",
+	"datadir":".komodo",
+	"conf":"komodo.conf",
+	"rpcport":"7771"
+},{
+	"tag":"VRSC",
+	"daemon":"verusd",
+	"cli":"verus-cli",
+        "datadir":".komodo/VRSC",
+        "conf":"VRSC.conf",
+        "rpcport":"27486"
+},{
+        "tag":"GAME",
+        "daemon":"gamecreditsd",
+        "cli":"gamecredits-cli",
+        "datadir":".gamecredits",
+        "conf":"gamecredits.conf",
+        "rpcport":"40001"
+},{
+        "tag":"GIN",
+        "daemon":"gincored",
+        "cli":"gincore-cli",
+        "datadir":".gincoincore",
+        "conf":"gincoin.conf",
+        "rpcport":"10211"
+},{
+        "tag":"EMC2",
+        "daemon":"einsteiniumd",
+        "cli":"einsteinium-cli",
+        "datadir":".einsteinium",
+        "conf":"einsteinium.conf",
+        "rpcport":"41879"
+},{
+        "tag":"CHIPS",
+        "daemon":"chipsd",
+        "cli":"chips-cli",
+        "datadir":".chips",
+        "conf":"chips.conf",
+        "rpcport":"57776"
+}]
