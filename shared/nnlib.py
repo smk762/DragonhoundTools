@@ -6,24 +6,8 @@ import bitcoin
 from bitcoin.core import x
 from bitcoin.core import CoreMainParams
 from bitcoin.wallet import P2PKHBitcoinAddress
+from kmdlib import *
 
-
-home = expanduser("~")
-cwd = os.getcwd()
-
-with open(home+"/thirdHoundTools/3rd_config.json") as j:
-  config = json.load(j)
-
-sweep_Radd = config['sweep_Radd']
-nn_Radd = config['nn_Radd']
-ntx_Radd = config['ntx_Radd']
-
-NTX_ADDRESS = 'RXL3YXG2ceaB6C5hfJcN4fvmLH2C34knhA'
-NN_ADDRESS = 'RRfUCLxfT5NMpxsC9GHVbdfVy5WJnJFQLV'
-sweep_Radd = 'RKD8NjuLNrnqaFY9KRpU6MAWHeve9byjAA'
-
-with open(home+"/thirdHoundTools/3rd_coins.json", 'r') as j:
-  coins_json = json.load(j)
 
 class CoinParams(CoreMainParams):
     MESSAGE_START = b'\x24\xe9\x27\x64'
@@ -105,7 +89,7 @@ def last_ntx(coin):
     txinfo = rpc[coin].listtransactions("", 77777)
     for tx in txinfo:
         if 'address' in tx:
-            if tx['address'] == NTX_ADDRESS:
+            if tx['address'] == ntx_Radd:
                 time_since = time.time() - tx['time']
                 if last_time > time_since:
                     last_time = time_since
@@ -134,8 +118,8 @@ def clean_wallet(coin, tx_max=100):
             unspent = rpc[coin].listlockunspent()
             rpc[coin].lockunspent(True, unspent)
             bal = float(rpc[coin].getbalance())
-            print("Sending "+str(bal)+" "+coin+"s to "+NN_ADDRESS)
-            txid = rpc[coin].sendtoaddress(NN_ADDRESS, bal, "", "", True)
+            print("Sending "+str(bal)+" "+coin+"s to "+nn_Radd)
+            txid = rpc[coin].sendtoaddress(nn_Radd, bal, "", "", True)
             wait_confirm(coin, txid)
             unconfirmed_bal = rpc[coin].getunconfirmedbalance()
             while unconfirmed_bal > 0:
@@ -146,11 +130,4 @@ def clean_wallet(coin, tx_max=100):
         except Exception as e:
             print(e)
             pass
-
-coins = coins_info(coins_json)
-coins.append('KMD')
-#coins.append('ORACLEARTH')
-rpc = {}
-for coin in coins:
-    rpc[coin] = def_creds(coin)
 

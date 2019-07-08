@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+                                                                                                                                 #!/usr/bin/env python3
 import os
 import re
 import sys
@@ -25,15 +25,29 @@ except:
 
 this_node = config_json['this_node']
 iguanaport = config_json['iguanaport']
-nn_Radd = config_json['nn_Radd']
 
-LabsNN_Radd = config_json['nn_Radd']
-third_party_Radd = config_json['third_party_Radd']
+# set node specific coins config
+if this_node == 'primary':
+    ntx_Radd = config_json['nn_ntx_Radd']
+    nn_Radd = config_json['nn_Radd']
+    komodo_ac_json = config_json['komodo_ac_json']
+    stats_oracletxid = config_json['nn_stats_oracleid']
+    coins_json = home+'/'+komodo_ac_json
+elif this_node == 'third_party':
+    ntx_Radd = config_json['nn_ntx_Radd']
+    third_party_Radd = config_json['third_party_Radd']
+    third_party_json = config_json['third_party_json']
+    stats_oracletxid = config_json['thirdparty_stats_oracleid']
+    coins_json = home+'/'+third_party_json
+elif this_node == 'labs':
+    labs_ac_json = config_json['labs_ac_json']
+    ntx_Radd = config_json['Labs_ntx_Radd']
+    LabsNN_Radd = config_json['nn_Radd']
+    stats_oracletxid = config_json['labs_stats_oracleid']
+    coins_json = home+'/'+labs_ac_json
 
 sweep_Radd = config_json['sweep_Radd']
-komodo_ac_json = config_json['komodo_ac_json']
-labs_ac_json = config_json['labs_ac_json']
-third_party_json = config_json['third_party_json']
+
 j.close()
 
 # Set coin config locations. Not yet tested outside Linux for 3rd party coins!
@@ -46,16 +60,6 @@ elif operating_system == 'Win64' or operating_system == 'Windows':
     ac_dir = '%s/komodo/' % os.environ['APPDATA']
     import readline
 
-# set node specific coins config
-if this_node == 'primary':
-    ntx_Radd = config_json['nn_ntx_Radd']
-    coins_json = home+'/'+komodo_ac_json
-elif this_node == 'third_party':
-    ntx_Radd = config_json['nn_ntx_Radd']
-    coins_json = home+'/'+third_party_json
-elif this_node == 'labs':
-    ntx_Radd = config_json['Labs_ntx_Radd']
-    coins_json = home+'/'+labs_ac_json
 
 def colorize(string, color):
     colors = {
@@ -252,3 +256,4 @@ def display_time(seconds, granularity=1):
 rpc = {}
 for coin in coinlist:
     rpc[coin] = def_creds(coin)
+rpc['ORACLEARTH'] = def_creds('ORACLEARTH')

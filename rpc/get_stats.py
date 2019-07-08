@@ -3,23 +3,25 @@ import os
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'shared'))
 from kmdlib import *
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'cc'))
+from oracleslib import *
 
-
+stats_json = []
 # The BTC and KMD address here must remain the same.
 # Do not need to enter yours!
 txscanamount = 10080 # one week. If not NTX for this long, something broken!
 utxoamt=0.00010000
 ntrzdamt=-0.00083600
 timefilter2=1525513998
-print("-----------------------------------------------------------------------------------")    
+print("  -----------------------------------------------------------------------------------")    
 print(\
-    "|"+'{:^11}'.format('COIN')+"|"+'{:^9}'.format('BALANCE')+ \
+    "  |"+'{:^11}'.format('COIN')+"|"+'{:^9}'.format('BALANCE')+ \
     "|"+'{:^6}'.format('UTXO')+"|"+'{:^6}'.format('DUST')+ \
     "|"+'{:^7}'.format('TX')+"|"+'{:^8}'.format('SYNC %')+ \
     "|"+'{:^11}'.format('LAST NTX')+"|"+'{:^9}'.format('24H NTX')+ \
     "|"+'{:^6}'.format('CONN')+ \
     "|")
-print("-----------------------------------------------------------------------------------")    
+print("  -----------------------------------------------------------------------------------")    
 for coin in coinlist:
     coin_str = '{:^11}'.format(coin) 
     wallet_info = rpc[coin].getwalletinfo()
@@ -48,9 +50,26 @@ for coin in coinlist:
     last_ntx = '{:^11}'.format(display_time(time_since_ntx))
     ntx_24hr = '{:^9}'.format(str(ntx_24hr))
     connected = '{:^6}'.format(str(rpc[coin].getnetworkinfo()['connections']))
-    print("|"+coin_str+"|"+balance+"|" \
+    print("  |"+coin_str+"|"+balance+"|" \
               +utxos+"|"+dust+"|" \
               +txcount+"|"+sync_pct+"|" \
               +last_ntx+"|"+ntx_24hr+"|" \
               +connected+"|")
-print("-----------------------------------------------------------------------------------")    
+    json_row = {
+                "coin": coin_str, "balance": balance, "utxos": utxos,
+                "dust": dust, "txcount": txcount, "sync_pct": sync_pct,
+                "last_ntx": last_ntx, "ntx_24hr": ntx_24hr,
+                "connected": connected
+                }
+    stats_json.append(json_row)
+print("  -----------------------------------------------------------------------------------")    
+if len(stats_oracletxid) != 64:
+    oracleslist = rpc['ORACLEARTH'].oracleslist()
+    if stats_oracletxid in oracleslist:
+        rpc['ORACLEARTH'].oraclesinfo(stats_oracletxid)
+        print("Please wait, oracle write under construction.")
+    else:
+        print("Oracle not configured.")
+        print("Create one at http://oracle.earth")
+        print("Then add the txid to ~/DragonhoundTools/config/config.json")
+    # TODO: add write to oracle code. 
