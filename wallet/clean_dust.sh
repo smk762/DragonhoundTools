@@ -1,18 +1,17 @@
 #!/bin/bash
 SHELL=/bin/sh PATH=/bin:/sbin:/usr/bin:/usr/sbin
-
-cd $HOME/komodo/src #komodo-cli location
  
-#Use like:  ./clean_dust.sh BEER 
- 
-# Replace address below with destination address 
-Addy="RRfUCLxfT5NMpxsC9GHVbdfVy5WJnJFQLV"
-
-AssetChain=""
-if [ "${1}" != "KMD" ] && [ "${1}" != "" ]; then
-AssetChain=" -ac_name="${1}
-fi
+#Use like:  ./clean_dust.sh BEER R-addr 
 ac_name=${1}
+Radd="${2}"
+
+
+if [ "${1}" != "KMD" ] && [ "${1}" != "" ]; then
+    AssetChain=" -ac_name="${1}
+else
+    AssetChain=""
+fi
+
 function makeRaw() {
     for ((tc = 0; tc <= $1 - 1; tc++)); do
         RawOut2="{\"txid\":\"${txids[tc]}\",\"vout\":${vouts[tc]}},"
@@ -20,7 +19,7 @@ function makeRaw() {
         OutAmount=$(echo "scale=8; ($OutAmount + ${amounts[tc]})" | bc)
     done
     OutAmount=$(echo "scale=8; $OutAmount - 0.00000001" | bc) OutAmount=${OutAmount/#./0.}
-    RawOut="${RawOut::-1}" RawOut=$RawOut"] {\"$Addy\":$OutAmount}"
+    RawOut="${RawOut::-1}" RawOut=$RawOut"] {\"$Radd\":$OutAmount}"
 }
 function addnlocktime() {
     nlocktime=$(printf "%08x" $(date +%s) | dd conv=swab 2>/dev/null | rev)
@@ -56,7 +55,7 @@ function cook_utxos() {
     Signed=$(./komodo-cli${AssetChain} signrawtransaction $newhex | jq -r '.hex')
     lasttx=$(echo -e "$Signed" | ./komodo-cli${AssetChain} -stdin sendrawtransaction)
     echo "Sent signed raw consolidated tx: $lasttx"
-    echo "$OutAmount ${ac_name} sent to $Addy"
+    echo "$OutAmount ${ac_name} sent to $Radd"
 }
 
 unspent_utxos=$(./komodo-cli${AssetChain} listunspent | jq length)

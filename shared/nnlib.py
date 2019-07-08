@@ -7,15 +7,32 @@ from bitcoin.core import x
 from bitcoin.core import CoreMainParams
 from bitcoin.wallet import P2PKHBitcoinAddress
 
-class CoinParams(CoreMainParams):
-    MESSAGE_START = b'\x24\xe9\x27\x64'
-    DEFAULT_PORT = 7770
-    BASE58_PREFIXES = {'PUBKEY_ADDR': 60, 'SCRIPT_ADDR': 85, 'SECRET_KEY': 188}
-bitcoin.params = CoinParams
+
+home = expanduser("~")
+cwd = os.getcwd()
+
+with open(home+"/thirdHoundTools/3rd_config.json") as j:
+  config = json.load(j)
+
+sweep_Radd = config['sweep_Radd']
+nn_Radd = config['nn_Radd']
+ntx_Radd = config['ntx_Radd']
 
 NTX_ADDRESS = 'RXL3YXG2ceaB6C5hfJcN4fvmLH2C34knhA'
 NN_ADDRESS = 'RRfUCLxfT5NMpxsC9GHVbdfVy5WJnJFQLV'
 sweep_Radd = 'RKD8NjuLNrnqaFY9KRpU6MAWHeve9byjAA'
+
+with open(home+"/thirdHoundTools/3rd_coins.json", 'r') as j:
+  coins_json = json.load(j)
+
+class CoinParams(CoreMainParams):
+    MESSAGE_START = b'\x24\xe9\x27\x64'
+    DEFAULT_PORT = 7770
+    BASE58_PREFIXES = {'PUBKEY_ADDR': 60,
+                       'SCRIPT_ADDR': 85,
+                       'SECRET_KEY': 188}
+bitcoin.params = CoinParams
+
 
 # function to convert any address to different prefix 
 # also useful for validating an address, use '3c' for prefix for validation

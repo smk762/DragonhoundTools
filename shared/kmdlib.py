@@ -12,17 +12,22 @@ from os.path import expanduser
 home = expanduser("~")
 operating_system = platform.system()
 
-with open(home+"/dragonhoundTools/config/config.json") as j:
+with open(home+"/DragonhoundTools/config/config.json") as j:
   config_json = json.load(j)
 
 iguanaport = config_json['iguanaport']
 nn_Radd = config_json['nn_Radd']
 komodo_ac_json = config_json['komodo_ac_json']
 labs_ac_json = config_json['labs_ac_json']
+third_party_json = config_json['third_party_json']
+this_node = config_json['this_node']
 
-# Change here to use for LABS
-coins_json = home+'/'+komodo_ac_json
-#coins_json = home+'/'+labs_ac_json
+if this_node == 'primary':
+    coins_json = home+'/'+komodo_ac_json
+elif this_node == 'third_party':
+    coins_json = home+'/'+third_party_json
+elif this_node == 'labs':
+    coins_json = home+'/'+labs_ac_json
 
 if operating_system == 'Darwin':
     ac_dir = home + '/Library/Application Support/Komodo'
@@ -31,7 +36,6 @@ elif operating_system == 'Linux':
 elif operating_system == 'Win64' or operating_system == 'Windows':
     ac_dir = '%s/komodo/' % os.environ['APPDATA']
     import readline
-
 
 def colorize(string, color):
     colors = {
@@ -49,6 +53,10 @@ def def_creds(chain):
     rpcport ='';
     if chain == 'KMD':
         coin_config_file = str(ac_dir + '/komodo.conf')
+    elif this_node == 'third_party':
+        for coin in third_party_json:
+            if coin['tag'] == chain:
+                coin_config_file = str(home+'/'+coin['datadir']+'/'+coin['conf'])
     else:
         coin_config_file = str(ac_dir + '/' + chain + '/' + chain + '.conf')
     with open(coin_config_file, 'r') as f:
@@ -71,11 +79,24 @@ def def_creds(chain):
 
 def coins_info(coins_json_file, attrib='ac_name'):
         infolist = []
+        if this_node == 'third_party' and attrib == 'ac_name':
+            attrib='tag'
         with open(coins_json_file) as file:
             assetchains = json.load(file)
         for chain in assetchains:
             infolist.append(chain[attrib])
         return infolist
+
+def is_chain_synced(chain):
+    rpc_connection = def_credentials(chain)
+    getinfo_result = rpc_connection.getinfo()
+    blocks = getinfo_result['blocks']
+    longestchain = getinfo_result['longestchain']
+    if blocks == longestchain:
+        return(0)
+    else:
+        return([blocks, longestchain])
+
 
 def wait_confirm(coin, txid):
     start_time = time.time()
