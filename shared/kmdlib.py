@@ -26,10 +26,10 @@ except:
 this_node = config_json['this_node']
 iguanaport = config_json['iguanaport']
 nn_Radd = config_json['nn_Radd']
-nn_ntx_Radd = config_json['nn_ntx_Radd']
+
 LabsNN_Radd = config_json['nn_Radd']
 third_party_Radd = config_json['third_party_Radd']
-Labs_ntx_Radd = config_json['Labs_ntx_Radd']
+
 sweep_Radd = config_json['sweep_Radd']
 komodo_ac_json = config_json['komodo_ac_json']
 labs_ac_json = config_json['labs_ac_json']
@@ -48,11 +48,15 @@ elif operating_system == 'Win64' or operating_system == 'Windows':
 
 # set node specific coins config
 if this_node == 'primary':
+    ntx_Radd = config_json['nn_ntx_Radd']
     coins_json = home+'/'+komodo_ac_json
 elif this_node == 'third_party':
+    ntx_Radd = config_json['nn_ntx_Radd']
     coins_json = home+'/'+third_party_json
 elif this_node == 'labs':
+    ntx_Radd = config_json['Labs_ntx_Radd']
     coins_json = home+'/'+labs_ac_json
+
 def colorize(string, color):
     colors = {
         'blue': '\033[94m',
@@ -215,6 +219,30 @@ with open(coins_json) as file:
 for chain in assetchains:
     coinlist.append(chain[attrib])
 coinlist.append('KMD')
+
+intervals = (
+    ('d', 86400),
+    ('hr', 3600),
+    ('min', 60),
+    ('sec', 1),
+    )
+
+def display_time(seconds, granularity=1):
+    result = []
+    if seconds > 10080:
+        time_str = "> week!"
+    else:
+        for name, count in intervals:
+            value = seconds // count
+            if value:
+                seconds -= value * count
+                if value == 1:
+                    name = name.rstrip('s')
+                result.append("{} {}".format(int(value), name))
+        time_str = ', '.join(result[:granularity])
+    return time_str
+
+
 
 # Set RPCs
 rpc = {}
