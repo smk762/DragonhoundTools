@@ -23,14 +23,16 @@ for coin in coinlist:
     coin_str = '{:^11}'.format(coin) 
     wallet_info = rpc[coin].getwalletinfo()
     balance = '{:^9}'.format(str(wallet_info['balance'])[:7])
+    info = rpc[coin].getinfo()
+    blocks = info['blocks']
     if this_node == 'third_party':
-        txcount = '{:^7}'.format(str(len(rpc[coin].listtransactions())))
+        txcount = '{:^7}'.format(str(len(rpc[coin].listransactions())))
+        longestchain = info['notarized']
     else:
         txcount = '{:^7}'.format(str(wallet_info['txcount']))
-    blocks = rpc[coin].getbalance()
-    longestchain = rpc[coin].getbalance()
+        longestchain = info['longestchain']
     try:
-        sync_pct = '{:^9}'.format(str(blocks/longestchain*100)+"%")
+        sync_pct = '{:^9}'.format(str(blocks/longestchain*100)[:4]+"%")
     except:
         sync_pct = '{:^9}'.format("N/A")
 
