@@ -23,9 +23,10 @@ except:
     print("nano "+home+"/DragonhoundTools/config/config.json")
     sys.exit(0)
 
-this_node = config_json['this_node']
-iguanaport = config_json['iguanaport']
 try:
+    this_node = config_json['this_node']
+    pubkey = config_json['pubkey']
+    iguanaport = config_json['iguanaport']
     # set node specific coins config
     if this_node == 'primary':
         ntx_Radd = config_json['nn_ntx_Radd']
@@ -46,7 +47,7 @@ try:
         stats_oracletxid = config_json['labs_stats_oracleid']
         coins_json = home+'/'+labs_ac_json
 except Exception as e:
-    print("No config.json file needs an update!")
+    print("config.json file needs an update!")
     print(e)
     print("nano "+home+"/DragonhoundTools/config/config.json")
     sys.exit(0)
@@ -80,7 +81,6 @@ def colorize(string, color):
 
 def def_creds(chain):
     rpcport =''
-    coin_config_file = ''
     if chain == 'KMD':
         coin_config_file = str(ac_dir + '/komodo.conf')
     elif this_node == 'third_party':
@@ -91,7 +91,6 @@ def def_creds(chain):
                 coin_config_file = str(home+'/'+coin['datadir']+'/'+coin['conf'])
         if coin_config_file == '':
             coin_config_file = str(ac_dir + '/' + chain + '/' + chain + '.conf')                
-        file.close()
     else:
         coin_config_file = str(ac_dir + '/' + chain + '/' + chain + '.conf')
     with open(coin_config_file, 'r') as f:
@@ -264,4 +263,8 @@ def display_time(seconds, granularity=1):
 rpc = {}
 for coin in coinlist:
     rpc[coin] = def_creds(coin)
-rpc['ORACLEARTH'] = def_creds('ORACLEARTH')
+if 
+try:
+    rpc['ORACLEARTH'] = def_creds('ORACLEARTH')
+except:
+    pass
