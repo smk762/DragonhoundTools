@@ -163,8 +163,8 @@ if method == "help":
         r = no_help_method()
 elif method == 'splitfunds':
     if len(sys.argv) == 4:
-        sys.argv[2] = cointag
-        sys.argv[3] = duplicates
+        cointag = sys.argv[2]
+        duplicates = sys.argv[3]
         if cointag in third_party_cointags:
             satoshis = 100000
         else:
