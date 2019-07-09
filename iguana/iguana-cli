@@ -162,7 +162,11 @@ if method == "help":
         method_help = ''
         r = no_help_method()
 elif method == 'splitfunds':
+    print(sys.argv)
+    print(len(sys.argv))
     if (sys.argv) == 4:
+        sys.argv[2] = cointag
+        sys.argv[3] = duplicates
         if cointag in third_party_cointags:
             satoshis = 100000
         else:
@@ -173,7 +177,7 @@ elif method == 'splitfunds':
         r = requests.post(iguana_ip, json=params)
         print(r.json())
     else:
-        print("Use like ./iguana-cli splitfunds COIN DUPLICATES")
+        print("Use like ./iguana-cli splitfunds COINTAG DUPLICATES")
 else:
     print(str(method) +" not yet supported, ask @smk762#7640 or submit a PR")
 print()
