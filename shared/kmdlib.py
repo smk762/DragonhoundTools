@@ -263,7 +263,6 @@ def display_time(seconds, granularity=1):
 rpc = {}
 for coin in coinlist:
     rpc[coin] = def_creds(coin)
-if 
 try:
     rpc['ORACLEARTH'] = def_creds('ORACLEARTH')
 except:
