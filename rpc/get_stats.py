@@ -55,11 +55,11 @@ for coin in coinlist:
               +txcount+"|"+sync_pct+"|" \
               +last_ntx+"|"+ntx_24hr+"|" \
               +connected+"|")
-    json_row = {
-                "coin": coin_str, "balance": balance, "utxos": utxos,
-                "dust": dust, "txcount": txcount, "sync_pct": sync_pct,
-                "last_ntx": last_ntx, "ntx_24hr": ntx_24hr,
-                "connected": connected
+    json_row = { "timestamp":str(now),
+                "coin": coin_str.strip(), "balance": balance.strip(), "utxos": utxos.strip(),
+                "dust": dust.strip(), "txcount": txcount.strip(), "sync_pct": sync_pct.strip(),
+                "last_ntx": last_ntx.strip(), "ntx_24hr": ntx_24hr.strip(),
+                "connected": connected.strip()
                 }
     stats_json.append(json_row)
 print("  -----------------------------------------------------------------------------------")    
