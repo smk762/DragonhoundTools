@@ -25,26 +25,31 @@ except:
 
 this_node = config_json['this_node']
 iguanaport = config_json['iguanaport']
-
-# set node specific coins config
-if this_node == 'primary':
-    ntx_Radd = config_json['nn_ntx_Radd']
-    nn_Radd = config_json['nn_Radd']
-    komodo_ac_json = config_json['komodo_ac_json']
-    stats_oracletxid = config_json['nn_stats_oracleid']
-    coins_json = home+'/'+komodo_ac_json
-elif this_node == 'third_party':
-    ntx_Radd = config_json['nn_ntx_Radd']
-    third_party_Radd = config_json['third_party_Radd']
-    third_party_json = config_json['third_party_json']
-    stats_oracletxid = config_json['thirdparty_stats_oracleid']
-    coins_json = home+'/'+third_party_json
-elif this_node == 'labs':
-    labs_ac_json = config_json['labs_ac_json']
-    ntx_Radd = config_json['Labs_ntx_Radd']
-    LabsNN_Radd = config_json['nn_Radd']
-    stats_oracletxid = config_json['labs_stats_oracleid']
-    coins_json = home+'/'+labs_ac_json
+try:
+    # set node specific coins config
+    if this_node == 'primary':
+        ntx_Radd = config_json['nn_ntx_Radd']
+        nn_Radd = config_json['nn_Radd']
+        komodo_ac_json = config_json['komodo_ac_json']
+        stats_oracletxid = config_json['nn_stats_oracleid']
+        coins_json = home+'/'+komodo_ac_json
+    elif this_node == 'third_party':
+        ntx_Radd = config_json['nn_ntx_Radd']
+        third_party_Radd = config_json['third_party_Radd']
+        third_party_json = config_json['third_party_json']
+        stats_oracletxid = config_json['thirdparty_stats_oracleid']
+        coins_json = home+'/'+third_party_json
+    elif this_node == 'labs':
+        labs_ac_json = config_json['labs_ac_json']
+        ntx_Radd = config_json['Labs_ntx_Radd']
+        LabsNN_Radd = config_json['nn_Radd']
+        stats_oracletxid = config_json['labs_stats_oracleid']
+        coins_json = home+'/'+labs_ac_json
+except Exception as e:
+    print("No config.json file needs an update!")
+    print(e)
+    print("nano "+home+"/DragonhoundTools/config/config.json")
+    sys.exit(0)
 
 sweep_Radd = config_json['sweep_Radd']
 
@@ -74,7 +79,8 @@ def colorize(string, color):
         return colors[color] + string + '\033[0m'
 
 def def_creds(chain):
-    rpcport ='';
+    rpcport =''
+    coin_config_file = ''
     if chain == 'KMD':
         coin_config_file = str(ac_dir + '/komodo.conf')
     elif this_node == 'third_party':
@@ -83,6 +89,8 @@ def def_creds(chain):
         for coin in coins_3p:
             if coin['tag'] == chain:
                 coin_config_file = str(home+'/'+coin['datadir']+'/'+coin['conf'])
+        if coin_config_file == '':
+            coin_config_file = str(ac_dir + '/' + chain + '/' + chain + '.conf')                
         file.close()
     else:
         coin_config_file = str(ac_dir + '/' + chain + '/' + chain + '.conf')

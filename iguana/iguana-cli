@@ -3,8 +3,10 @@ import os
 import sys
 import requests
 from pprint import pprint
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'shared'))
+from kmdlib import *
 
-iguana_ip = "http://127.0.0.1:7776"
+iguana_ip = "http://127.0.0.1:"+str(iguanaport)
 agents = ['dpow', 'pax', 'passthru', 'zcash', 'komodo',
         'dex', 'basilisk', 'bitcoinrpc', 'iguana',
         'jumblr', 'InstantDEX', 'tradebot', 'SuperNET',
@@ -159,6 +161,21 @@ if method == "help":
         print(e)
         method_help = ''
         r = no_help_method()
+elif method == 'splitfunds':
+    if (sys.argv) == 4:
+        if cointag in third_party_cointags:
+            satoshis = 100000
+        else:
+            satoshis = 10000
+        params = {'agent':'iguana', 'method': method, 'coin': cointag
+                  'duplicates': duplicates, 'satoshis': satoshis,
+                  'sendflag': 1 }
+        r = requests.post(iguana_ip, json=params)
+        print(r.json())
+    else:
+        print("Use like ./iguana-cli splitfunds COIN DUPLICATES")
+else:
+    print(str(method) +" not yet supported, ask @smk762#7640 or submit a PR")
 print()
 #elif method in iguana_methods:
 #elif method in SuperNET_methods:
