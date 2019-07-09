@@ -6,7 +6,6 @@ from pprint import pprint
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'shared'))
 from kmdlib import *
 
-third_party_cointags = ['GAME', 'EMC2']
 iguana_ip = "http://127.0.0.1:"+str(iguanaport)
 agents = ['dpow', 'pax', 'passthru', 'zcash', 'komodo',
         'dex', 'basilisk', 'bitcoinrpc', 'iguana',
@@ -168,7 +167,7 @@ elif method == 'splitfunds':
             satoshis = 100000
         else:
             satoshis = 10000
-        params = {'agent':'iguana', 'method': method, 'coin': cointag
+        params = {'agent':'iguana', 'method': method, 'coin': cointag,
                   'duplicates': duplicates, 'satoshis': satoshis,
                   'sendflag': 1 }
         r = requests.post(iguana_ip, json=params)

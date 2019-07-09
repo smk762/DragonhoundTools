@@ -1,4 +1,4 @@
-                                                                                                                                 #!/usr/bin/env python3
+#!/usr/bin/env python3
 import os
 import re
 import sys
@@ -51,10 +51,10 @@ except Exception as e:
     print(e)
     print("nano "+home+"/DragonhoundTools/config/config.json")
     sys.exit(0)
-
 sweep_Radd = config_json['sweep_Radd']
-
 j.close()
+
+third_party_cointags = ['GAME', 'EMC2']
 
 # Set coin config locations. Not yet tested outside Linux for 3rd party coins!
 operating_system = platform.system()
@@ -178,11 +178,15 @@ def unlockunspent(coin):
 def unspent_count(coin):
     count = 0
     dust = 0
+    if coin in third_party_cointags:
+        ntx_utxo_size = 0.001
+    else:
+        ntx_utxo_size = 0.0001
     unspent = rpc[coin].listunspent()
     for utxo in unspent:
-        if utxo['amount'] == 0.0001:
+        if utxo['amount'] == ntx_utxo_size:
             count += 1
-        elif utxo['amount'] < 0.0001:
+        elif utxo['amount'] < ntx_utxo_size:
             dust += 1
     return [count,dust]
 
@@ -193,6 +197,10 @@ def unspent_info(coin):
     oldest = 0
     interest_utxos = 0 
     interest_value = 0
+    if coin in third_party_cointags:
+        ntx_utxo_size = 0.001
+    else:
+        ntx_utxo_size = 0.0001
     unspent = rpc[coin].listunspent()
     for utxo in unspent:
         if utxo['interest'] > 0:
@@ -206,9 +214,9 @@ def unspent_info(coin):
             oldest = time_since
         if utxo['amount'] < smallest:
             newest = time_since
-        if utxo['amount'] == 0.0001:
+        if utxo['amount'] == ntx_utxo_size:
             count += 1
-        elif utxo['amount'] < 0.0001:
+        elif utxo['amount'] < ntx_utxo_size:
             dust += 1
     return [count,dust,oldest,newest,interest_utxos,interest_value]
 
