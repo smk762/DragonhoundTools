@@ -64,12 +64,15 @@ for coin in coinlist:
     stats_json.append(json_row)
 print("  -----------------------------------------------------------------------------------")    
 if len(stats_oracletxid) != 64:
-    oracleslist = rpc['ORACLEARTH'].oracleslist()
-    if stats_oracletxid in oracleslist:
-        rpc['ORACLEARTH'].oraclesinfo(stats_oracletxid)
-        print("Please wait, oracle write under construction.")
-    else:
-        print("Oracle not configured.")
-        print("Create one at http://oracle.earth")
-        print("Then add the txid to ~/DragonhoundTools/config/config.json")
-    # TODO: add write to oracle code. 
+    try:
+        oracleslist = rpc['ORACLEARTH'].oracleslist()
+        if stats_oracletxid in oracleslist:
+            rpc['ORACLEARTH'].oraclesinfo(stats_oracletxid)
+            print("Please wait, oracle write under construction.")
+        else:
+            print("Oracle not configured.")
+            print("Create one at http://oracle.earth")
+            print("Then add the txid to ~/DragonhoundTools/config/config.json")
+        # TODO: add write to oracle code. 
+    except:
+        pass
