@@ -1,4 +1,4 @@
-pubkey=$(./get_pubkey.py)
+pubkey=$(~/DragonhoundTools/cc/get_pubkey.py)
 echo $test2
 if [[ ${#test2} -lt 80 ]]; then
         cd /home/smk762/FSM/komodo/src

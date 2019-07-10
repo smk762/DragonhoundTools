@@ -131,3 +131,37 @@ def read_oracle(chain, oracletxid, numrec):
         return samples['samples']
     else:
         print(colorize("ERROR: Oracle batonuto does not exist.", 'red'))
+
+
+
+def check_oracleFunds(chain, oracletxid, pubkey):
+    oraclesinfo = rpc[chain].oraclesinfo(oracletxid)
+    publishers = []
+    funds = 0
+    timeout = 0
+    while funds < 1:
+        oraclesinfo = rpc[chain].oraclesinfo(oracletxid)
+        for pub in oraclesinfo['registered']:
+            publishers.append(pub['publisher'])
+        if pubkey in publishers:
+            for pub in oraclesinfo['registered']:
+                if pub['publisher'] == pubkey:
+                    funds = float(pub['funds'])
+        timeout += 1
+        if timeout > 12:
+            print("Oracle funding timed out :(")
+            sys.exit(1)
+        time.sleep(20)
+    
+def add_oracleFunds(chain, oracletxid, pubkey):
+    oe_bal = rpc[chain].getbalance()
+    if oe_bal < 100:
+        print("Your "+chain+" balance needs a top up!")
+        sys.exit(1)
+    else:
+        print("Adding funds to your "+chain+" subscription...")
+        for x in range(10):
+            result = rpc[chain].oraclessubscribe(oracletxid, pubkey, str(10))
+            orcl_hex = result['hex']
+            rpc[chain].sendrawtransaction(orcl_hex)
+

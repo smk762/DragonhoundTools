@@ -3,10 +3,12 @@ import os
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'shared'))
 from kmdlib import *
+from statslib import *
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'cc'))
 from oracleslib import *
+now = time.time()
 
-stats_json = []
+stats_data = []
 # The BTC and KMD address here must remain the same.
 # Do not need to enter yours!
 txscanamount = 10080 # one week. If not NTX for this long, something broken!
@@ -37,7 +39,6 @@ for coin in coinlist:
     last_ntx_time = 0
     ntx_24hr = 0
     txinfo = rpc[coin].listtransactions("", txscanamount)
-    now = time.time()
     for tx in txinfo:
         if 'address' in tx:
             if tx['address'] == ntx_Radd:
@@ -55,24 +56,53 @@ for coin in coinlist:
               +txcount+"|"+sync_pct+"|" \
               +last_ntx+"|"+ntx_24hr+"|" \
               +connected+"|")
-    json_row = { "timestamp":str(now),
-                "coin": coin_str.strip(), "balance": balance.strip(), "utxos": utxos.strip(),
-                "dust": dust.strip(), "txcount": txcount.strip(), "sync_pct": sync_pct.strip(),
-                "last_ntx": last_ntx.strip(), "ntx_24hr": ntx_24hr.strip(),
-                "connected": connected.strip()
+    json_row = {
+                "coin": coin_str.strip(), "bal": balance.strip(), "utxos": utxos.strip(),
+                "dust": dust.strip(), "txs": txcount.strip(), "sync": sync_pct.strip(),
+                "lastNtx": last_ntx.strip(), "ntx24h": ntx_24hr.strip(),
+                "conn": connected.strip()
                 }
-    stats_json.append(json_row)
+    stats_data.append(json_row)
 print("  -----------------------------------------------------------------------------------")    
-if len(stats_oracletxid) != 64:
-    try:
-        oracleslist = rpc['ORACLEARTH'].oracleslist()
-        if stats_oracletxid in oracleslist:
-            rpc['ORACLEARTH'].oraclesinfo(stats_oracletxid)
-            print("Please wait, oracle write under construction.")
+publishers = []
+stats_json = [{"timestamp": str(now), "data": stats_data }]
+try:
+    oracleslist = rpc['ORACLEARTH'].oracleslist()
+    if stats_oracletxid in oracleslist:
+        oraclesinfo = rpc['ORACLEARTH'].oraclesinfo(stats_oracletxid)
+        print(oraclesinfo)
+        for pub in oraclesinfo['registered']:
+            publishers.append(pub['publisher'])
+        if pubkey in publishers:
+            for pub in oraclesinfo['registered']:
+                if pub['publisher'] == pubkey:
+                    funds = float(pub['funds'])
+            if funds > 1:
+                stats2oracle(rpc['ORACLEARTH'], stats_oracletxid, str(stats_json))
+            else:
+                add_oracleFunds('ORACLEARTH', stats_oracletxid, pubkey)
+                check_oracleFunds('ORACLEARTH', stats_oracletxid, pubkey)
+                stats2oracle(rpc['ORACLEARTH'], stats_oracletxid, str(stats_json))
         else:
-            print("Oracle not configured.")
-            print("Create one at http://oracle.earth")
-            print("Then add the txid to ~/DragonhoundTools/config/config.json")
-        # TODO: add write to oracle code. 
-    except:
-        pass
+            print("Your pubkey is not yet registered... will do it now...")
+            # oraclesfund
+            fund = rpc['ORACLEARTH'].oraclesfund(stats_oracletxid)
+            send_confirm_rawtx('ORACLEARTH', fund['hex'])
+            print("Oraclesfund confirmed")
+            # oraclesregister
+            rego = rpc['ORACLEARTH'].oraclesregister(stats_oracletxid, str(1000000))
+            send_confirm_rawtx('ORACLEARTH', rego['hex'])
+            print("Oracleregister confirmed")
+            # oraclessubscribe
+            add_oracleFunds('ORACLEARTH', stats_oracletxid, pubkey)
+            check_oracleFunds('ORACLEARTH', stats_oracletxid, pubkey)
+            print("Oraclessubscribe confirmed")
+            stats2oracle(rpc['ORACLEARTH'], stats_oracletxid, str(stats_json))
+    else:
+        print("Oracle not configured.")
+        print("Create one at http://oracle.earth")
+        print("Then add the txid to ~/DragonhoundTools/config/config.json")
+    # TODO: add write to oracle code. 
+except Exception as e:
+    print(e)
+    pass
