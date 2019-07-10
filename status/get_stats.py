@@ -67,14 +67,16 @@ print("  -----------------------------------------------------------------------
 publishers = []
 stats_json = [{"timestamp": str(now), "data": stats_data }]
 try:
-    if rpc['ORACLEARTH'].getbalance() < 1:
+    if float(rpc['ORACLEARTH'].getbalance()) < 1:
         print("You have insufficient ORACLEARTH funds to send data")
         sys.exit(1)
     oracleslist = rpc['ORACLEARTH'].oracleslist()
+    print(oracleslist)
     if stats_oracletxid in oracleslist:
         oraclesinfo = rpc['ORACLEARTH'].oraclesinfo(stats_oracletxid)
         for pub in oraclesinfo['registered']:
             publishers.append(pub['publisher'])
+        print(publishers)
         if pubkey in publishers:
             for pub in oraclesinfo['registered']:
                 if pub['publisher'] == pubkey:
