@@ -1,17 +1,13 @@
 {
-	"iguanaport":"7776",
-	"this_node":"Set to 'labs' / 'primary' / 'thirdparty'",
-	"nn_stats_oracleid":"",
-	"labs_stats_oracleid":"",
-	"thirdparty_stats_oracleid":"",
-	"nn_Radd":"Enter your Primary Notary Node Address",
-	"nn_ntx_Radd":"Enter the KMD Notarization Address",
-	"third_party_Radd":"Enter your 3rd Party Notary Node Address",
-	"LabsNN_Radd":"Enter your LABS Notary Node Address",
-	"Labs_ntx_Radd":"RXL3YXG2ceaB6C5hfJcN4fvmLH2C34knhA",
-	"sweep_Radd":"RKD8NjuLNrnqaFY9KRpU6MAWHeve9byjAA",
+	"iguanaport":"7776 (Primary) / 7779 (3rd party) / 9333 (Labs)",
+	"this_node":"Set to Labs / Primary / 3rd Party",
+	"notary_name":"",
+	"pubkey":"Enter your pubkey",
+	"stats_oracleid":"",
+	"nn_Radd":"Enter your Primary Notary Node KMD Address",
+	"sweep_Radd":"Enter your Sweep Funds Address",
+	"ntx_Radd":"RXL3YXG2ceaB6C5hfJcN4fvmLH2C34knhA",
 	"komodo_ac_json":"komodo/src/assetchains.json",
 	"third_party_json":"DragonhoundTools/config/third_party.json",
-	"labs_ac_json":"StakedNotary/assetchains.json",
-	"pubkey":"Enter your pubkey"
+	"labs_ac_json":"StakedNotary/assetchains.json"
 }

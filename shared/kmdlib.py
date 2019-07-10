@@ -28,23 +28,17 @@ try:
     pubkey = config_json['pubkey']
     iguanaport = config_json['iguanaport']
     # set node specific coins config
+    ntx_Radd = config_json['ntx_Radd']
+    nn_Radd = config_json['nn_Radd']
+    stats_oracletxid = config_json['stats_oracleid']
     if this_node == 'primary':
-        ntx_Radd = config_json['nn_ntx_Radd']
-        nn_Radd = config_json['nn_Radd']
         komodo_ac_json = config_json['komodo_ac_json']
-        stats_oracletxid = config_json['nn_stats_oracleid']
         coins_json = home+'/'+komodo_ac_json
     elif this_node == 'third_party':
-        ntx_Radd = config_json['nn_ntx_Radd']
-        third_party_Radd = config_json['third_party_Radd']
         third_party_json = config_json['third_party_json']
-        stats_oracletxid = config_json['thirdparty_stats_oracleid']
         coins_json = home+'/'+third_party_json
     elif this_node == 'labs':
         labs_ac_json = config_json['labs_ac_json']
-        ntx_Radd = config_json['Labs_ntx_Radd']
-        LabsNN_Radd = config_json['nn_Radd']
-        stats_oracletxid = config_json['labs_stats_oracleid']
         coins_json = home+'/'+labs_ac_json
 except Exception as e:
     print("config.json file needs an update!")
