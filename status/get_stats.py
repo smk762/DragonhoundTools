@@ -101,9 +101,8 @@ try:
         print("Oracle not configured.")
         print("Create one at http://oracle.earth")
         print("Then add the txid to ~/DragonhoundTools/config/config.json")
-    # TODO: add write to oracle code. 
 except Exception as e:
-    print(e)
+    print(str(e))
     if str(e) == 'ORACLEARTH':
         print("ORACLEARTH not running, can be launched from ls ~/DragonhoundTools/cc/launch_oe.sh")
     pass
