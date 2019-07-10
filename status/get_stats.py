@@ -70,7 +70,6 @@ try:
     oracleslist = rpc['ORACLEARTH'].oracleslist()
     if stats_oracletxid in oracleslist:
         oraclesinfo = rpc['ORACLEARTH'].oraclesinfo(stats_oracletxid)
-        print(oraclesinfo)
         for pub in oraclesinfo['registered']:
             publishers.append(pub['publisher'])
         if pubkey in publishers:
@@ -105,4 +104,6 @@ try:
     # TODO: add write to oracle code. 
 except Exception as e:
     print(e)
+    if str(e) == 'ORACLEARTH':
+        print("ORACLEARTH not running, can be launched from ls ~/DragonhoundTools/cc/launch_oe.sh")
     pass
