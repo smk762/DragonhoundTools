@@ -156,8 +156,9 @@ def check_oracleFunds(chain, oracletxid, pubkey):
 def add_oracleFunds(chain, oracletxid, pubkey):
     oe_bal = rpc[chain].getbalance()
     if oe_bal < 100:
-        print(chain+" balance: "+str(oe_bal)+" (need > 100")
+        print(chain+" balance: "+str(oe_bal)+" (need > 100)")
         print("Your "+chain+" balance needs a top up!")
+        print("Ask @smk762#7640 on Discord to send some.")
         sys.exit(1)
     else:
         print("Adding funds to your "+chain+" subscription...")
