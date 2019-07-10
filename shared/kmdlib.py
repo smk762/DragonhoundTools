@@ -273,5 +273,6 @@ for coin in coinlist:
     rpc[coin] = def_creds(coin)
 try:
     rpc['ORACLEARTH'] = def_creds('ORACLEARTH')
-except:
+except Exception as e:
+    print("RPCs Error: "+e)
     pass
