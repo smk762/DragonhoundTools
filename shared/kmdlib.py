@@ -81,7 +81,7 @@ def colorize(string, color):
 
 def def_creds(chain):
     rpcport =''
-    coin_config_file == ''
+    coin_config_file = ''
     if chain == 'KMD':
         coin_config_file = str(ac_dir + '/komodo.conf')
     elif this_node == 'third_party':
