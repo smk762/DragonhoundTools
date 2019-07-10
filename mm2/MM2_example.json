@@ -1,0 +1,11 @@
+{
+"seednodes":["SEED_IP","SEED_IP","SEED_IP","SEED_IP"],
+"gui":"MM2GUI",
+"rpc_password":"YOUR SECURE RPC PASSWORD",
+"rpcip":"0.0.0.0",
+"netid":0,		// Change if using custom trading network
+"userhome":"/home/user",
+"rpc_local_only":false,
+"passphrase":"YOUR SEED SECURE PHRASE"
+}
+
