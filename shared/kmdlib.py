@@ -78,6 +78,8 @@ def def_creds(chain):
     coin_config_file = ''
     if chain == 'KMD':
         coin_config_file = str(ac_dir + '/komodo.conf')
+    elif chain == 'BTC':
+        coin_config_file = str(home + '/.bitcoin/bitcoin.conf')
     elif this_node == 'third_party':
         with open(coins_json) as file:
             coins_3p = json.load(file)
@@ -100,6 +102,8 @@ def def_creds(chain):
     if len(rpcport) == 0:
         if chain == 'KMD':
             rpcport = 7771
+        elif chain == 'KMD':
+            rpcport = 8333
         else:
             print("rpcport not in conf file, exiting")
             print("check "+coin_config_file)
@@ -247,7 +251,7 @@ intervals = (
 
 def display_time(seconds, granularity=1):
     result = []
-    if seconds > 10080:
+    if seconds > 604800:
         time_str = "> week!"
     else:
         for name, count in intervals:
@@ -264,8 +268,11 @@ def display_time(seconds, granularity=1):
 
 # Set RPCs
 rpc = {}
+if this_node == 'primary':
+    coinlist.append('BTC')
 for coin in coinlist:
     rpc[coin] = def_creds(coin)
+
 try:
     rpc['ORACLEARTH'] = def_creds('ORACLEARTH')
 except Exception as e:
