@@ -7,12 +7,10 @@ from statslib import *
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'cc'))
 from oracleslib import *
 now = time.time()
-
 stats_data = []
 # The BTC and KMD address here must remain the same.
 # Do not need to enter yours!
 txscanamount = 10080 # one week. If not NTX for this long, something broken!
-utxoamt=0.00010000
 ntrzdamt=-0.00083600
 timefilter2=1525513998
 print("  -----------------------------------------------------------------------------------")    
@@ -25,6 +23,14 @@ print(\
     "|")
 print("  -----------------------------------------------------------------------------------")    
 for coin in coinlist:
+    if coin == 'GAME' or coin == 'EMC2':
+        utxoamt=0.00010000
+    if coin == 'GAME' or coin == 'GIN':
+        ntx_Radd = 'Gftmt8hgzgNu6f1o85HMPuwTVBMSV2TYSt'
+    elif coin == 'EMC2':
+        ntx_Radd = 'EfCkxbDFSn4X1VKMzyckyHaXLf4ithTGoM'
+    elif coin == 'BTC':
+        ntx_Radd = '1P3rU1Nk1pmc2BiWC8dEy9bZa1ZbMp5jfg'
     coin_str = '{:^11}'.format(coin) 
     wallet_info = rpc[coin].getwalletinfo()
     balance = '{:^9}'.format(str(wallet_info['balance'])[:7])
