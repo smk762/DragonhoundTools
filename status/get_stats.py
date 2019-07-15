@@ -24,6 +24,8 @@ print(\
 print("  -----------------------------------------------------------------------------------")    
 for coin in coinlist:
     if coin == 'GAME' or coin == 'EMC2':
+        utxoamt=0.0010000
+    else:
         utxoamt=0.00010000
     if coin == 'GAME' or coin == 'GIN':
         ntx_Radd = 'Gftmt8hgzgNu6f1o85HMPuwTVBMSV2TYSt'
@@ -31,6 +33,8 @@ for coin in coinlist:
         ntx_Radd = 'EfCkxbDFSn4X1VKMzyckyHaXLf4ithTGoM'
     elif coin == 'BTC':
         ntx_Radd = '1P3rU1Nk1pmc2BiWC8dEy9bZa1ZbMp5jfg'
+    else:
+        ntx_Radd = 'RXL3YXG2ceaB6C5hfJcN4fvmLH2C34knhA'
     coin_str = '{:^11}'.format(coin) 
     wallet_info = rpc[coin].getwalletinfo()
     balance = '{:^9}'.format(str(wallet_info['balance'])[:7])
