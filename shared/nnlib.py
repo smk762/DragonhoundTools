@@ -30,7 +30,7 @@ def addr_convert(prefix, address):
     sha256b = hashlib.sha256(binb).hexdigest()
     hmmmm = binascii.unhexlify(net_byte + sha256b[:8])
     final = base58.b58encode(hmmmm)
-return(final.decode())
+    return(final.decode())
 
 def ntx_ranks(coin):
     score = {}
@@ -102,6 +102,23 @@ def sweep_funds(coin, reserve=5):
             rpc[coin].sendtoaddress(sweep_Radd, amount)
             print(str(amount)+" "+coin+" sent to "+sweep_Radd)
 
+def split_funds(coin, target=100):
+        utxo_count = int(unspent_count(coin)[0])
+        threshold = int(target/2)
+        if threshold > utxo_count:
+            if coin == 'GAME' or coin == 'EMC2':
+                utxosize=100000
+            else:
+                utxosize=10000
+            split_num = target - utxo_count
+            print("["+coin+"]"+" splitting "+str(split_num)+" extra UTXOs")
+            params = {'agent':'iguana', 'method': 'splitfunds',
+                      'coin': coin, 'duplicates': split_num,
+                      'satoshis': utxosize, 'sendflag': 1 }
+            r = requests.post("http://127.0.0.1:"+iguanaport, json=params)
+            return r
+        else:
+            return "No split required"
 
 def clean_wallet(coin, tx_max=100):
     tx_count = int(rpc[coin].getwalletinfo()['txcount'])
@@ -110,7 +127,6 @@ def clean_wallet(coin, tx_max=100):
         try:
             print("Consolidating "+coin+ " funds")
             unconfirmed_bal = rpc[coin].getunconfirmedbalance()
-
             while unconfirmed_bal > 0:
                 print("Waiting for unconfirmed funds ("+str(unconfirmed_bal)+") to arrive...")
                 time.sleep(10)
@@ -118,7 +134,7 @@ def clean_wallet(coin, tx_max=100):
             unspent = rpc[coin].listlockunspent()
             rpc[coin].lockunspent(True, unspent)
             bal = float(rpc[coin].getbalance())
-            print("Sending "+str(bal)+" "+coin+"s to "+nn_Radd)
+            print("Consolidating "+str(bal)+" "+coin+"s to "+nn_Radd)
             txid = rpc[coin].sendtoaddress(nn_Radd, bal, "", "", True)
             wait_confirm(coin, txid)
             unconfirmed_bal = rpc[coin].getunconfirmedbalance()

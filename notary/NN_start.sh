@@ -5,7 +5,8 @@ bitcoind -deprecatedrpc=estimatefee &
 ~/hush3/src/hushd -pubkey=$pubkey &
 sleep 60
 cd ~/komodo/src
-./komodod -gen -genproclimit=1 -notary -pubkey=$pubkey &
+./komodod -notary -pubkey=$pubkey &
 sleep 600
 #./assetchains.old
 ./assetchains
+koodo-cli setgenerate true 1

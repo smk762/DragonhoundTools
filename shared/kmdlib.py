@@ -6,6 +6,7 @@ import json
 import http
 import time
 import codecs
+import requests
 import platform
 from slickrpc import Proxy
 from os.path import expanduser
