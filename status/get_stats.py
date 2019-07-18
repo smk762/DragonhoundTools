@@ -38,10 +38,7 @@ for coin in coinlist:
     coin_str = '{:^11}'.format(coin) 
     wallet_info = rpc[coin].getwalletinfo()
     balance = '{:^9}'.format(str(wallet_info['balance'])[:7])
-    if this_node == 'third_party':
-        txcount = '{:^7}'.format(str(len(rpc[coin].listtransactions())))
-    else:
-        txcount = '{:^7}'.format(str(wallet_info['txcount']))
+    txcount = '{:^7}'.format(str(wallet_info['txcount']))
     sync_pct = '{:^8}'.format(str(rpc[coin].getblockchaininfo()['verificationprogress']*100)[:5]+"%")
     unspent = unspent_count(coin)
     utxos = '{:^6}'.format(str(unspent[0]))
