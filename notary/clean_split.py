@@ -13,11 +13,7 @@ for coin in coinlist:
   try:
     if coin not in ignore:
         clean_wallet(coin)
-    bal = int(rpc[coin].getbalance())
-    if bal > 20:
-      amount = bal - reserve
-      rpc[coin].sendtoaddress(sweep_Radd, str(amount))
-      print(str(amount)+" "+coin+" sent to sweep address "+sweep_Radd)
+        sweep_funds(coin, 5)
   except:
     pass
   r = split_funds(coin, 100)
