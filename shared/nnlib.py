@@ -97,10 +97,11 @@ def last_ntx(coin):
 
 def sweep_funds(coin, reserve=5):
         bal = rpc[coin].getbalance()
+        print("Balance: "+str(bal))
         if bal > reserve:
             amount = bal - reserve
             rpc[coin].sendtoaddress(sweep_Radd, amount)
-            print(str(amount)+" "+coin+" sent to "+sweep_Radd)
+            print(str(amount)+" "+coin+" sent to sweep address "+sweep_Radd)
 
 def split_funds(coin, target=100):
         utxo_count = int(unspent_count(coin)[0])
@@ -120,7 +121,7 @@ def split_funds(coin, target=100):
         else:
             return "No split required"
 
-def clean_wallet(coin, tx_max=100):
+def clean_wallet(coin, tx_max=150):
     tx_count = int(rpc[coin].getwalletinfo()['txcount'])
     print(str(tx_count)+" transactions in "+coin+" wallet")
     if tx_count > tx_max:
