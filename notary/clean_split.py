@@ -12,13 +12,9 @@ ignore = ['AXORACLE', 'ORACLEARTH', 'BTC', 'GAME', 'EMC' ]
 for coin in coinlist:
   try:
     if coin not in ignore:
-        clean_wallet(coin)
-        sweep_funds(coin, 5)
+       cl = clean_wallet(coin)
+       sw = sweep_funds(coin, 5)
   except:
     pass
-  r = split_funds(coin, 100)
-  try:
-    if 'error' in r.json():
-  	  print(r.json()['error'])
-  except:
-    print(r)
+  sp = split_funds(coin, 60)
+  print(sp)

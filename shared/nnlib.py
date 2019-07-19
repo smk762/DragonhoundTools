@@ -96,42 +96,44 @@ def last_ntx(coin):
     return last_time
 
 def sweep_funds(coin, reserve=5):
-        bal = rpc[coin].getbalance()
-        print("Balance: "+str(bal))
-        if bal > reserve:
-            amount = bal - reserve
-            rpc[coin].sendtoaddress(sweep_Radd, amount)
-            print(str(amount)+" "+coin+" sent to sweep address "+sweep_Radd)
+    bal = int(rpc[coin].getbalance())
+    if bal > reserve:
+        amount = bal - reserve
+        txid = rpc[coin].sendtoaddress(sweep_Radd, amount)
+        print(str(amount)+" "+coin+" sent to sweep address "+sweep_Radd+". TXID: "+txid)
 
 def split_funds(coin, target=100):
+        bal = format(rpc[coin].getbalance(), '^2.3')
         utxo_count = int(unspent_count(coin)[0])
+        if coin == 'KMD':
+            target = target*3
         threshold = int(target/2)
+        split_num = target - utxo_count
+        output = ' | '+'{:^9}'.format(coin)+" | " \
+        +'{:^6}'.format(str(bal))+" | " \
+        +'{:^9}'.format(str(utxo_count)+" utxos")+" | " \
+        +'{:^10}'.format(str(target)+" target")+" | " \
+        +'{:^13}'.format(str(threshold)+" threshold")+" | "
         if threshold > utxo_count:
             if coin == 'GAME' or coin == 'EMC2':
                 utxosize=100000
             else:
                 utxosize=10000
-            split_num = target - utxo_count
-            print("["+coin+"]"+" splitting "+str(split_num)+" extra UTXOs")
             params = {'agent':'iguana', 'method': 'splitfunds',
                       'coin': coin, 'duplicates': split_num,
                       'satoshis': utxosize, 'sendflag': 1 }
             r = requests.post("http://127.0.0.1:"+iguanaport, json=params)
-            return r
+            if 'error' in r:
+                return output+'{:^25}'.format('Splitting '+str(split_num)+' extra utxos')+' | '+str(r.json())
+            else:
+                return output+'{:^25}'.format('Splitting '+str(split_num)+' extra utxos')+' | '
         else:
-            return "No split required"
+            return output+'{:^25}'.format('No split required')+' | '
 
-def clean_wallet(coin, tx_max=150):
+def clean_wallet(coin, tx_max=250):
     tx_count = int(rpc[coin].getwalletinfo()['txcount'])
-    print(str(tx_count)+" transactions in "+coin+" wallet")
     if tx_count > tx_max:
         try:
-            print("Consolidating "+coin+ " funds")
-            unconfirmed_bal = rpc[coin].getunconfirmedbalance()
-            while unconfirmed_bal > 0:
-                print("Waiting for unconfirmed funds ("+str(unconfirmed_bal)+") to arrive...")
-                time.sleep(10)
-                unconfirmed_bal = rpc[coin].getunconfirmedbalance()
             unspent = rpc[coin].listlockunspent()
             rpc[coin].lockunspent(True, unspent)
             bal = float(rpc[coin].getbalance())

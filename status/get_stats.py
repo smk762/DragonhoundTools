@@ -13,15 +13,15 @@ stats_data = []
 txscanamount = 10080 # one week. If not NTX for this long, something broken!
 ntrzdamt=-0.00083600
 timefilter2=1525513998
-print("  -----------------------------------------------------------------------------------")    
+print("  -----------------------------------------------------------------------------")    
 print(\
     "  |"+'{:^11}'.format('COIN')+"|"+'{:^9}'.format('BALANCE')+ \
     "|"+'{:^6}'.format('UTXO')+"|"+'{:^6}'.format('DUST')+ \
-    "|"+'{:^7}'.format('TX')+"|"+'{:^8}'.format('SYNC %')+ \
-    "|"+'{:^11}'.format('LAST NTX')+"|"+'{:^9}'.format('24H NTX')+ \
+    "|"+'{:^6}'.format('TX')+"|"+'{:^8}'.format('SYNC %')+ \
+    "|"+'{:^9}'.format('NTX')+"|"+'{:^6}'.format('24HR')+ \
     "|"+'{:^6}'.format('CONN')+ \
     "|")
-print("  -----------------------------------------------------------------------------------")    
+print("  -----------------------------------------------------------------------------")    
 for coin in coinlist:
     if coin == 'GAME' or coin == 'EMC2':
         utxoamt=0.0010000
@@ -38,7 +38,7 @@ for coin in coinlist:
     coin_str = '{:^11}'.format(coin) 
     wallet_info = rpc[coin].getwalletinfo()
     balance = '{:^9}'.format(str(wallet_info['balance'])[:7])
-    txcount = '{:^7}'.format(str(wallet_info['txcount']))
+    txcount = '{:^6}'.format(str(wallet_info['txcount']))
     sync_pct = '{:^8}'.format(str(rpc[coin].getblockchaininfo()['verificationprogress']*100)[:5]+"%")
     unspent = unspent_count(coin)
     utxos = '{:^6}'.format(str(unspent[0]))
@@ -55,8 +55,8 @@ for coin in coinlist:
                     ntx_24hr += 1
     time_since_ntx = now-last_ntx_time
 
-    last_ntx = '{:^11}'.format(display_time(time_since_ntx))
-    ntx_24hr = '{:^9}'.format(str(ntx_24hr))
+    last_ntx = '{:^9}'.format(display_time(time_since_ntx))
+    ntx_24hr = '{:^6}'.format(str(ntx_24hr))
     connected = '{:^6}'.format(str(rpc[coin].getnetworkinfo()['connections']))
     print("  |"+coin_str+"|"+balance+"|" \
               +utxos+"|"+dust+"|" \
@@ -70,7 +70,7 @@ for coin in coinlist:
                 "conn": connected.strip()
                 }
     stats_data.append(json_row)
-print("  -----------------------------------------------------------------------------------")    
+print("  -----------------------------------------------------------------------------")    
 publishers = []
 stats_json = [{"timestamp": str(now), "data": stats_data }]
 try:
