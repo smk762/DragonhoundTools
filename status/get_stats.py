@@ -43,9 +43,9 @@ for coin in coinlist:
     balance = '{:^9}'.format(str(wallet_info['balance'])[:7])
     txcount = '{:^6}'.format(str(wallet_info['txcount']))
     block = '{:^7}'.format(str(rpc[coin].getblockcount()))
-    if coin != 'BTC':
+    try:
         tip = '{:^7}'.format(str(rpc[coin].getinfo()['longestchain']))
-    else:
+    except:
         tip = '{:^7}'.format(str(rpc[coin].getblockchaininfo()['headers']))
     if int(tip) == 0:
         sync_pct = '{:^8}'.format("FORKED?")
