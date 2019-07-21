@@ -95,19 +95,23 @@ def last_ntx(coin):
                     last_time = time_since
     return last_time
 
-def sweep_funds(coin, reserve=5):
+def sweep_funds(coin, reserve=25):  # A lower value may result in unmatured leftovers and lack of utxos!
     bal = int(rpc[coin].getbalance())
     if bal > reserve:
         amount = bal - reserve
-        txid = rpc[coin].sendtoaddress(sweep_Radd, amount)
-        print(str(amount)+" "+coin+" sent to sweep address "+sweep_Radd+". TXID: "+txid)
+        if amount > 25:
+            txid = rpc[coin].sendtoaddress(sweep_Radd, amount)
+            print(str(amount)+" "+coin+" sent to sweep address "+sweep_Radd+". TXID: "+txid)
 
-def split_funds(coin, target=100):
+def split_funds(coin, target=60):
         bal = format(rpc[coin].getbalance(), '^2.3')
         utxo_count = int(unspent_count(coin)[0])
         if coin == 'KMD':
+            rpc[coin].setgenerate(True, 1)
             target = target*3
-        threshold = int(target/2)
+            threshold = int(target/3)
+        else:
+            threshold = int(target/2)
         split_num = target - utxo_count
         output = ' | '+'{:^9}'.format(coin)+" | " \
         +'{:^6}'.format(str(bal))+" | " \
@@ -123,14 +127,15 @@ def split_funds(coin, target=100):
                       'coin': coin, 'duplicates': split_num,
                       'satoshis': utxosize, 'sendflag': 1 }
             r = requests.post("http://127.0.0.1:"+iguanaport, json=params)
-            if 'error' in r:
-                return output+'{:^25}'.format('Splitting '+str(split_num)+' extra utxos')+' | '+str(r.json())
+            if r.text.find('couldnt create duplicates tx'):
+                consolidate(coin)
+                return output+'{:^25}'.format('Error splitting extra utxos')+' | '+str(r.json())
             else:
-                return output+'{:^25}'.format('Splitting '+str(split_num)+' extra utxos')+' | '
+                return output+'{:^25}'.format('Splitting '+str(split_num)+' extra utxos')+' | '+str(r.text)
         else:
             return output+'{:^25}'.format('No split required')+' | '
 
-def clean_wallet(coin, tx_max=250):
+def clean_wallet(coin, tx_max=200):
     tx_count = int(rpc[coin].getwalletinfo()['txcount'])
     if tx_count > tx_max:
         try:
@@ -150,3 +155,50 @@ def clean_wallet(coin, tx_max=250):
             print(e)
             pass
 
+def format_param(param, value):
+    return '-' + param + '=' + value
+
+
+def get_params(coin):
+    with open(home + '/komodo/src/assetchains.json') as file:
+        assetchains = json.load(file)
+
+    for chain in assetchains:
+        params = []
+        if chain == coin:
+            for param, value in chain.items():
+                if isinstance(value, list):
+                    for dupe_value in value:
+                        params.append(format_param(param, dupe_value))
+                else:
+                    params.append(format_param(param, value))
+#            return(' '.join(params))
+            return params
+
+def move_chain(coin):
+    print("tryna move "+coin)
+    rpc[coin].setgenerate(True, 1)
+    block_count = rpc[coin].getblockcount()
+    next_block = block_count + 1
+    consolidate(coin)
+    while next_block > block_count:
+        time.sleep(60)
+        block_count = rpc[coin].getblockcount()
+    rpc[coin].setgenerate(False)
+
+def reindex_chain(coin):
+    rpc[coin].stop()
+    time.sleep(30)
+    params = get_params(coin)
+    Popen(["komodod", '-ac_name='+coin, '-reindex', "-pubkey="+pubkey]+params)
+
+def consolidate(coin):    
+    last_tx = rpc[coin].listtransactions("", 1)[0]['timereceived']
+    now = time.time()
+    if int(now) > int(last_tx)+3600:
+        unspent = rpc[coin].listlockunspent()
+        rpc[coin].lockunspent(True, unspent)
+        bal = float(rpc[coin].getbalance())
+        print("Consolidating "+str(bal)+" "+coin+"s to "+nn_Radd)
+        txid = rpc[coin].sendtoaddress(nn_Radd, bal, "", "", True)
+        wait_confirm(coin, txid)

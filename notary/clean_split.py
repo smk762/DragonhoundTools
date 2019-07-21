@@ -13,7 +13,7 @@ for coin in coinlist:
   try:
     if coin not in ignore:
        cl = clean_wallet(coin)
-       sw = sweep_funds(coin, 5)
+       sw = sweep_funds(coin, 25)
   except:
     pass
   sp = split_funds(coin, 60)

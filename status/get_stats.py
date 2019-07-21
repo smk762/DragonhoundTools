@@ -4,24 +4,27 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'shared'))
 from kmdlib import *
 from statslib import *
+from nnlib import *
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'cc'))
 from oracleslib import *
 now = time.time()
 stats_data = []
+forked_list = []
+stuck_list = []
 # The BTC and KMD address here must remain the same.
 # Do not need to enter yours!
 txscanamount = 10080 # one week. If not NTX for this long, something broken!
 ntrzdamt=-0.00083600
 timefilter2=1525513998
-print("  -----------------------------------------------------------------------------")    
+print("  ---------------------------------------------------------------------------------------")    
 print(\
     "  |"+'{:^11}'.format('COIN')+"|"+'{:^9}'.format('BALANCE')+ \
-    "|"+'{:^6}'.format('UTXO')+"|"+'{:^6}'.format('DUST')+ \
-    "|"+'{:^6}'.format('TX')+"|"+'{:^8}'.format('SYNC %')+ \
+    "|"+'{:^6}'.format('UTXO')+"|"+'{:^6}'.format('DUST')+"|"+'{:^6}'.format('TX')+ \
+    "|"+'{:^7}'.format('BLOCK')+"|"+'{:^7}'.format('TIP')+"|"+'{:^8}'.format('SYNC %')+ \
     "|"+'{:^9}'.format('NTX')+"|"+'{:^6}'.format('24HR')+ \
-    "|"+'{:^6}'.format('CONN')+ \
+    "|"+'{:^6}'.format('CONN')+"|"+'{:^8}'.format('MINE')+ \
     "|")
-print("  -----------------------------------------------------------------------------")    
+print("  ---------------------------------------------------------------------------------------")    
 for coin in coinlist:
     if coin == 'GAME' or coin == 'EMC2':
         utxoamt=0.0010000
@@ -39,11 +42,21 @@ for coin in coinlist:
     wallet_info = rpc[coin].getwalletinfo()
     balance = '{:^9}'.format(str(wallet_info['balance'])[:7])
     txcount = '{:^6}'.format(str(wallet_info['txcount']))
-    sync_pct = '{:^8}'.format(str(rpc[coin].getblockchaininfo()['verificationprogress']*100)[:5]+"%")
+    block = '{:^7}'.format(str(rpc[coin].getblockcount()))
+    if coin != 'BTC':
+        tip = '{:^7}'.format(str(rpc[coin].getinfo()['longestchain']))
+    else:
+        tip = '{:^7}'.format(str(rpc[coin].getblockchaininfo()['headers']))
+    if int(tip) == 0:
+        sync_pct = '{:^8}'.format("FORKED?")
+        forked_list.append(coin)
+    else:
+        sync_pct = '{:^8}'.format(str(int(block)/int(tip)*100)[:5]+"%")
     unspent = unspent_count(coin)
     utxos = '{:^6}'.format(str(unspent[0]))
     dust = '{:^6}'.format(str(unspent[1]))
     last_ntx_time = 0
+    last_mined_time = 0
     ntx_24hr = 0
     txinfo = rpc[coin].listtransactions("", txscanamount)
     for tx in txinfo:
@@ -53,16 +66,27 @@ for coin in coinlist:
                     last_ntx_time = int(tx['time'])
                 if tx['time'] > now - 86400:
                     ntx_24hr += 1
+        if 'category' in tx:
+            if tx['category'] == 'immature':
+                if tx['time'] > last_mined_time:
+                    last_mined_time = int(tx['time'])
     time_since_ntx = now-last_ntx_time
-
+    if int(time_since_ntx) > 30000:
+        stuck_list.append(coin)
+    if last_mined_time != 0:
+        time_since_mined = now-last_mined_time
+        last_mined = '{:^8}'.format(display_time(time_since_mined))
+    else:
+        last_mined = '{:^8}'.format("N/A")
     last_ntx = '{:^9}'.format(display_time(time_since_ntx))
+    
     ntx_24hr = '{:^6}'.format(str(ntx_24hr))
     connected = '{:^6}'.format(str(rpc[coin].getnetworkinfo()['connections']))
     print("  |"+coin_str+"|"+balance+"|" \
-              +utxos+"|"+dust+"|" \
-              +txcount+"|"+sync_pct+"|" \
+              +utxos+"|"+dust+"|"+txcount+"|" \
+              +block+"|"+tip+"|"+sync_pct+"|" \
               +last_ntx+"|"+ntx_24hr+"|" \
-              +connected+"|")
+              +connected+"|"+last_mined+"|")
     json_row = {
                 "coin": coin_str.strip(), "bal": balance.strip(), "utxos": utxos.strip(),
                 "dust": dust.strip(), "txs": txcount.strip(), "sync": sync_pct.strip(),
@@ -70,7 +94,11 @@ for coin in coinlist:
                 "conn": connected.strip()
                 }
     stats_data.append(json_row)
-print("  -----------------------------------------------------------------------------")    
+print("  --------------------------------------------------------------------------------------")    
+#for coin in forked_list:
+ #   consolidate(coin)
+#for coin in stuck_list:
+ #   move_chain(coin)
 publishers = []
 stats_json = [{"timestamp": str(now), "data": stats_data }]
 try:
