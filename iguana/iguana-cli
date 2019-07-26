@@ -101,7 +101,7 @@ def iguana_method(iguana_ip, method):
     return r
 
 def dpow_method(iguana_ip, method):
-    params = {'userpass': user_pass, 'method': method,}
+    params = {'agent':'dpow', 'method': method,}
     r = requests.post(iguana_ip, json=params)
     return r
 
@@ -161,6 +161,9 @@ if method == "help":
         print(e)
         method_help = ''
         r = no_help_method()
+elif method == 'ipaddrs':
+    r = dpow_method(iguana_ip, method)
+    print(r.json())
 elif method == 'splitfunds':
     if len(sys.argv) == 4:
         cointag = sys.argv[2]
