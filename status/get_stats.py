@@ -4,7 +4,7 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'shared'))
 from kmdlib import *
 from statslib import *
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'cc'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'cclibs'))
 from oracleslib import *
 now = time.time()
 stats_data = []
