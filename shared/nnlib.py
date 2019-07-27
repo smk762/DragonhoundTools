@@ -191,7 +191,7 @@ def consolidate(coin):
     now = time.time()
     tx_delay = 1800
     if coin == 'KMD':
-        tx_delay = 0
+        tx_delay = 300
     if int(now) > int(last_tx)+tx_delay:
         bal = float(rpc[coin].getbalance())
         unspent = rpc[coin].listlockunspent()
