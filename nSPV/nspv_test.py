@@ -30,8 +30,8 @@ nspv_methods = {'broadcast':[rawhex],
                 'notarizations':[height],
                 'spend':[address,amount],
                 'spentinfo':[txid,vout],
-                'stop':[],
-                'txproof':[txid,height]}
+                'txproof':[txid,height],
+                'stop':[]}
 for method in nspv_methods:
   param_lists = []
   for param_list in nspv_methods[method]:

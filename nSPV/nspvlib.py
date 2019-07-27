@@ -147,7 +147,7 @@ def nspv_stop(node_ip, user_pass):
   r = requests.post(node_ip, json=params)
   return r
 
-def nspv_txproof(node_ip, user_pass):
+def nspv_txproof(node_ip, user_pass, txid, height):
   params = {'userpass': user_pass,
               'method': 'txproof'}
   if txid is not False:
