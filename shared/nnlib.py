@@ -103,7 +103,7 @@ def sweep_funds(coin, reserve=25):  # A lower value may result in unmatured left
             txid = rpc[coin].sendtoaddress(sweep_Radd, amount)
             print(str(amount)+" "+coin+" sent to sweep address "+sweep_Radd+". TXID: "+txid)
 
-def split_funds(coin, target=60):
+def split_funds(coin, target=80):
         bal = format(rpc[coin].getbalance(), '^2.3')
         #rpc[coin].lockunspent(True, unspent)
         utxo_count = int(unspent_count(coin)[0])
