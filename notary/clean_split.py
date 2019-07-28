@@ -7,8 +7,8 @@ from nnlib import *
 
 # sweep_Radd set in config.json
 reserve = 5   # AMOUNT OF COINS TO KEEP IN WALLET
-
-ignore = ['AXORACLE', 'ORACLEARTH', 'BTC', 'GAME', 'EMC' ]
+mining = 0
+ignore = ['AXORACLE', 'ORACLEARTH', 'BTC', 'GAME', 'EMC', 'COQUICASH' ]
 for coin in coinlist:
   try:
     if coin not in ignore:
@@ -18,3 +18,15 @@ for coin in coinlist:
     pass
   sp = split_funds(coin, 60)
   print(sp)
+  dif = rpc[coin].getblockchaininfo()['difficulty']
+
+if coin not in ['BTC', 'EMC2', 'GIN', 'GAME']:
+  if rpc[coin].getgenerate()['generate'] is True:
+    mining += 1
+    if mining > 6:
+      rpc[coin].setgenerate(False)
+      mining -= 1
+  elif rpc[coin].getgenerate()['generate'] is False:
+      if dif == 1 and mining < 6:
+          rpc[coin].setgenerate(True, 1)
+          mining += 1
