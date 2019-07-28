@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 import itertools
 from nspvlib import *
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'qa'))
+from qalib import *
+local_ip = "http://127.0.0.1:7777"
 
 # params list format [no value (false), good value, bad value]
 wif = [False, 'UrJUbSqsb1chYxmQvScdnNhVc2tEJEBDUPMcxCCtgoUYuvyvLKvB', 'thiswontwork']
@@ -32,6 +35,9 @@ nspv_methods = {'broadcast':[rawhex],
                 'spentinfo':[txid,vout],
                 'txproof':[txid,height],
                 'stop':[]}
+
+
+build_commit('nspv')
 for method in nspv_methods:
   param_lists = []
   for param_list in nspv_methods[method]:
@@ -40,34 +46,40 @@ for method in nspv_methods:
   for x in test_params:
     print("nspv_"+method+str(x))
     if method == 'broadcast':
-      resp = nspv_broadcast(local_ip, userpass, *x).json()
+      resp = nspv_broadcast(local_ip, userpass, *x)
     elif method == 'getnewaddress':
-      resp = nspv_getnewaddress(local_ip, userpass, *x).json()
+      resp = nspv_getnewaddress(local_ip, userpass, *x)
     elif method == 'getpeerinfo':
-      resp = nspv_getpeerinfo(local_ip, userpass, *x).json()
+      resp = nspv_getpeerinfo(local_ip, userpass, *x)
     elif method == 'hdrsproof':
-      resp = nspv_hdrsproof(local_ip, userpass, *x).json()
+      resp = nspv_hdrsproof(local_ip, userpass, *x)
     elif method == 'help':
-      resp = nspv_help(local_ip, userpass, *x).json()
+      resp = nspv_help(local_ip, userpass, *x)
     elif method == 'listtransactions1':
-      resp = nspv_listtransactions(local_ip, userpass, *x).json()
+      resp = nspv_listtransactions(local_ip, userpass, *x)
     elif method == 'listtransactions2':
-      resp = nspv_listtransactions(local_ip, userpass, *x).json()
+      resp = nspv_listtransactions(local_ip, userpass, *x)
     elif method == 'listunspent1':
-      resp = nspv_listunspent(local_ip, userpass, *x).json()
+      resp = nspv_listunspent(local_ip, userpass, *x)
     elif method == 'listunspent2':
-      resp = nspv_listunspent(local_ip, userpass, *x).json()
+      resp = nspv_listunspent(local_ip, userpass, *x)
     elif method == 'login':
-      resp = nspv_login(local_ip, userpass, *x).json()
+      resp = nspv_login(local_ip, userpass, *x)
     elif method == 'notarizations':
-      resp = nspv_notarizations(local_ip, userpass, *x).json()
+      resp = nspv_notarizations(local_ip, userpass, *x)
     elif method == 'spend':
-      resp = nspv_spend(local_ip, userpass, *x).json()
+      resp = nspv_spend(local_ip, userpass, *x)
     elif method == 'spentinfo':
-      resp = nspv_spentinfo(local_ip, userpass, *x).json()
+      resp = nspv_spentinfo(local_ip, userpass, *x)
     elif method == 'stop':
-      resp = nspv_stop(local_ip, userpass, *x).json()
+      pass
+      #resp = nspv_stop(local_ip, userpass, *x)
     elif method == 'txproof':
-      resp = nspv_txproof(local_ip, userpass, *x).json()
-    print(resp)
+      resp = nspv_txproof(local_ip, userpass, *x)
+    try:
+      print(resp.json())
+    except:
+      print(resp.text)
+      pass
     time.sleep(2)
+nspv_stop(local_ip, userpass)

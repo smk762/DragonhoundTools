@@ -1,0 +1,10 @@
+{
+"seednodes":["3.19.57.115","3.14.127.17","18.191.62.124","18.222.154.141"],
+"gui":"MM2GUI",
+"netid":9999,
+"rpcip":"0.0.0.0",
+"rpc_local_only":false,
+"rpc_password":"ENTER SECURE RPC PASSWORD",
+"passphrase":"ENTER A SECURE PASSPHRASE",
+"userhome":"/home/YOURUSERNAME/"
+}

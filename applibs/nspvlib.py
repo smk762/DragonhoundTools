@@ -90,7 +90,7 @@ def nspv_listunspent(node_ip, user_pass, address=False, isCC=False, skipcount=Fa
   r = requests.post(node_ip, json=params)
   return r
 
-def nspv_login(node_ip, user_pass, wif):
+def nspv_login(node_ip, user_pass, wif=False):
   params = {'userpass': user_pass,
             'method': 'login'}
   if wif is not False:

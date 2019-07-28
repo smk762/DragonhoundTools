@@ -20,7 +20,7 @@ for coin in coinlist:
   print(sp)
   dif = rpc[coin].getblockchaininfo()['difficulty']
 
-if coin not in ['BTC', 'EMC2', 'GIN', 'GAME']:
+if coin not in ['BTC', 'EMC2', 'GIN', 'GAME', 'KMD']:
   if rpc[coin].getgenerate()['generate'] is True:
     mining += 1
     if mining > 6:

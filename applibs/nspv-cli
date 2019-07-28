@@ -1,0 +1,47 @@
+#!/usr/bin/env python3
+from nspvlib import *
+
+source_node_ip = "127.0.0.1"
+local_ip = "http://"+source_node_ip+":7777"
+userpass = "userpass"
+try:
+    method = sys.argv[1]
+except:
+    print("No method parameter! Use `./nspv-cli help` to view available commands")
+    method = ''
+    r = nspv_help(local_ip, userpass, 'help')
+    print(r.text)
+    sys.exit(0)
+x = []
+for i in range(2, len(sys.argv)):
+  x.append(sys.argv[i])
+
+if method == 'broadcast':
+  resp = nspv_broadcast(local_ip, userpass, *x).json()
+elif method == 'getnewaddress':
+  resp = nspv_getnewaddress(local_ip, userpass, *x).json()
+elif method == 'getpeerinfo':
+  resp = nspv_getpeerinfo(local_ip, userpass, *x).json()
+elif method == 'hdrsproof':
+  resp = nspv_hdrsproof(local_ip, userpass, *x).json()
+elif method == 'help':
+  resp = nspv_help(local_ip, userpass, *x).json()
+elif method == 'listtransactions':
+  resp = nspv_listtransactions(local_ip, userpass, *x).json()
+elif method == 'listunspent':
+  resp = nspv_listunspent(local_ip, userpass, *x).json()
+elif method == 'login':
+  resp = nspv_login(local_ip, userpass, *x).json()
+elif method == 'notarizations':
+  resp = nspv_notarizations(local_ip, userpass, *x).json()
+elif method == 'spend':
+  resp = nspv_spend(local_ip, userpass, *x).json()
+elif method == 'spentinfo':
+  resp = nspv_spentinfo(local_ip, userpass, *x).json()
+elif method == 'stop':
+  resp = nspv_stop(local_ip, userpass, *x).json()
+elif method == 'txproof':
+  resp = nspv_txproof(local_ip, userpass, *x).json()
+else:
+  resp = 'Method not recognised!'
+print(resp)

@@ -3,7 +3,11 @@ import os
 import sys
 import json
 import time
+import shutil
 import requests
+import itertools
+import subprocess
+from pprint import pprint
 from os.path import expanduser
 from urllib.parse import urlparse
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'applibs'))
@@ -14,9 +18,16 @@ from mm2lib import *
 cwd = os.getcwd()
 home = expanduser("~")
 
-CI_app_list = {'mm2':{'repo':'https://github.com/getthislater'},
-                'nspv':{'repo':'https://github.com/jl777/libnspv'}}
-                
+CI_app_list = { 'mm2':{'repo':'https://github.com/KomodoPlatform/atomicDEX-API',
+                        'branch':'mm2',
+                        'ip':'http://127.0.0.1',
+                        'port':'7783'},
+                'nspv':{'repo':'https://github.com/jl777/libnspv',
+                        'branch':'jl777',
+                        'ip':'http://127.0.0.1',
+                        'port':'7777'}
+                }
+
 qa_folder = home+"/qa"
 if not os.path.exists(qa_folder):
     os.mkdir(qa_folder)
@@ -26,21 +37,33 @@ def build_commit(app, branch=False, commit=False):
     repo_parse = urlparse(repo_url)
     repo_name = repo_parse.path.split('/')[-1]
     print("Building "+app+" binary from "+repo_url)
-    app_path = qa_folder+"/"+app+"/"+repo_parse.path
-    if os.path.exists(app_path):
-        shutil.rmtree(qa_folder+"/"+app+"/")
-    os.chdir(qa_folder+"/"+app)
+    apps_path = qa_folder+"/"+app
+    repo_path = apps_path+"/"+repo_name
+    tests_path = apps_path+"/tests"
+    logs_path = apps_path+"/logs"
+    if os.path.exists(repo_path):
+        shutil.rmtree(repo_path)
+    if not os.path.exists(apps_path):
+        os.mkdir(apps_path)
+    if not os.path.exists(tests_path):
+        os.mkdir(tests_path)
+    if not os.path.exists(logs_path):
+        os.mkdir(logs_path)
+    os.chdir(apps_path)
     clone_proc = subprocess.run(['git', 'clone', '-n', repo_url], check=True, stdout=subprocess.PIPE, universal_newlines=True)
     print(clone_proc.stdout)
-    os.chdir(app_path)
+    os.chdir(repo_path)
     if commit is not False:
         checkout_proc = subprocess.run(['git', 'checkout', commit], check=True, stdout=subprocess.PIPE, universal_newlines=True)
         print(checkout_proc.stdout)
     elif branch is not False:
         checkout_proc = subprocess.run(['git', 'checkout', branch], check=True, stdout=subprocess.PIPE, universal_newlines=True)
         print(checkout_proc.stdout)
-    commit = get_commit_hash(app_path)
-    test_log = qa_folder+"/logs/"+app+"_build_"+commit+".log"
+    elif 'branch' in CI_app_list[app]:
+        checkout_proc = subprocess.run(['git', 'checkout', CI_app_list[app]['branch']], check=True, stdout=subprocess.PIPE, universal_newlines=True)
+        print(checkout_proc.stdout)
+    commit = get_commit_hash(repo_path)
+    test_log = logs_path+"/"+app+"_build_"+commit+".log"
     test_output = open(test_log,'w+')
     if app == 'mm2':
         try:
@@ -48,43 +71,52 @@ def build_commit(app, branch=False, commit=False):
         except:
             pass
         #TODO: confirm this works after merging
+        os.chdir(repo_path)
+        print(repo_path)
         build_proc = subprocess.run(['cargo', 'build', '--features', 'native', '-vv'], check=True, stdout=subprocess.PIPE, universal_newlines=True)
         print(build_proc.stdout)
-        if os.path.exists(home+"/mm2_autotests/mm2"):
-            os.remove(home+"/mm2_autotests/mm2")
-        shutil.move(home+"/mm2_autotests/tests/SuperNET/target/debug/mm2", home+"/mm2_autotests/mm2")
-        os.chdir(home+"/mm2_autotests/")
-        Popen([home+"/mm2_autotests/mm2"], stdout=test_output, stderr=test_output, universal_newlines=True)
+        shutil.move(qa_path+"/config/MM2.json", repo_path+"/target/debug/MM2.json")
+        os.chdir(repo_path+"/target/debug/")
+        Popen([repo_path+"/target/debug/mm2"], stdout=test_output, stderr=test_output, universal_newlines=True)
     elif app == 'nspv':
         try:
-            nspv_stop() # TODO: rename func in nspvlib
+            nspv_stop(nspv_ip, 'userpass') # TODO: rename func in nspvlib
         except:
             pass
-        build_proc = subprocess.run(['autogen.sh'], check=True, stdout=subprocess.PIPE, universal_newlines=True)
+        build_proc = subprocess.run([repo_path+'/autogen.sh'], check=True, stdout=subprocess.PIPE, universal_newlines=True)
         print(build_proc.stdout)
-        build_proc = subprocess.run(['configure'], check=True, stdout=subprocess.PIPE, universal_newlines=True)
+        build_proc = subprocess.run([repo_path+'/configure'], check=True, stdout=subprocess.PIPE, universal_newlines=True)
         print(build_proc.stdout)
-        build_proc = subprocess.run(['make', 'check'], check=True, stdout=subprocess.PIPE, universal_newlines=True)
-        print(build_proc.stdout)
-        os.chdir(qa_folder+"/"+app+"/tests")
-        Popen([app_path+"/nspv", "KMD"], stdout=test_output, stderr=test_output, universal_newlines=True)
+        os.chdir(repo_path)
+        make_proc = subprocess.run(['make', 'check'], check=True, stdout=subprocess.PIPE, universal_newlines=True)
+        
+        print(make_proc.stdout)
+        os.chdir(tests_path)
+        #subprocess.run([repo_path+"/nspv", "KMD", "-p", "7777"], stdout=test_output, stderr=test_output, universal_newlines=True)
+        subprocess.Popen([repo_path+"/nspv", "KMD", "-p", CI_app_list[app]['port']], stdout=test_output, stderr=test_output, universal_newlines=True)
     print("Build complete, "+app+" started.")
-       print(" Use tail -f "+test_log+" for "+app+" console messages")
+    print(" Use tail -f "+test_log+" for "+app+" console messages")
 
 def check_releases_list(app):
     if app not in CI_app_list:
         print("App "+app+" not in CI list ("+str(CI_app_list)+")")
+        sys.exit(0)
     commits_list = []
     if app == 'mm2':
         r = requests.get("https://vsrm.dev.azure.com/ortgma/Marketmaker/_apis/release/approvals?api-version=5.0")
     # add other apps with elif here
     pending_releases_list = r.json()
+    print(pending_releases_list)
     if pending_releases_list["count"] > 0:
         for release in pending_releases_list["value"]:
             release_info = requests.get("https://vsrm.dev.azure.com/ortgma/Marketmaker/_apis/release/releases/{}?api-version=5.0".format(str(release["release"]["id"])))
             commit = release_info.json()["artifacts"][0]["definitionReference"]["sourceVersion"]["id"]
             repo = "https://github.com/"+release_info.json()["artifacts"][0]["definitionReference"]["repository"]["name"]
             commits_list.append([repo,commit])
+        print(commits_list)
+    else:
+        print("No "+app+" releases listed!")
+        sys.exit(0)
     return commits_list
 
 def get_md5sum(file):

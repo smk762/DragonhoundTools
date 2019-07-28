@@ -109,8 +109,8 @@ def split_funds(coin, target=80):
         utxo_count = int(unspent_count(coin)[0])
         if coin == 'KMD':
             rpc[coin].setgenerate(True, 1)
-            target = target*2
-            threshold = int(target/4)
+            target = target*4
+            threshold = int(target/6)
         else:
             threshold = int(target/4)
         split_num = target - utxo_count
@@ -119,7 +119,8 @@ def split_funds(coin, target=80):
         +'{:^9}'.format(str(utxo_count)+" utxos")+" | " \
         +'{:^10}'.format(str(target)+" target")+" | " \
         +'{:^13}'.format(str(threshold)+" threshold")+" | "
-        clean_wallet(coin)
+        if float(bal) > 0:
+            clean_wallet(coin)
         if threshold > utxo_count:
             if coin == 'GAME' or coin == 'EMC2':
                 utxosize=100000
@@ -137,14 +138,13 @@ def split_funds(coin, target=80):
         else:
             return output+'{:^25}'.format('No split required')+' | '
 
-def clean_wallet(coin, tx_max=90):
+def clean_wallet(coin, tx_max=120):
     tx_count = int(rpc[coin].getwalletinfo()['txcount'])
     if coin == 'KMD':
         tx_max = tx_max*2
     if tx_count > tx_max:
         try:
-            consolidate(coin)
-            rpc[coin].cleanwallettransactions()
+            consolidate(coin, 240)
         except Exception as e:
             print(e)
             pass
@@ -186,20 +186,19 @@ def reindex_chain(coin):
     params = get_params(coin)
     Popen(["komodod", '-ac_name='+coin, '-reindex', "-pubkey="+pubkey]+params)
 
-def consolidate(coin):    
+def consolidate(coin, tx_delay=900):    
     last_tx = rpc[coin].listtransactions("", 1)[0]['timereceived']
     now = time.time()
-    tx_delay = 1800
-    if coin == 'KMD':
-        tx_delay = 300
     if int(now) > int(last_tx)+tx_delay:
         bal = float(rpc[coin].getbalance())
-        unspent = rpc[coin].listlockunspent()
-        rpc[coin].lockunspent(True, unspent)
-        print("Consolidating "+str(bal)+" "+coin+"s to "+nn_Radd)
-        txid = rpc[coin].sendtoaddress(nn_Radd, bal, "", "", True)
-        wait_confirm(coin, txid)
-        time.sleep(15)
+        if bal > 0:
+            unspent = rpc[coin].listlockunspent()
+            rpc[coin].lockunspent(True, unspent)
+            print("Consolidating "+str(bal)+" "+coin+"s to "+nn_Radd)
+            txid = rpc[coin].sendtoaddress(nn_Radd, bal, "", "", True)
+            wait_confirm(coin, txid)
+            time.sleep(30)
+            rpc[coin].cleanwallettransactions()
 
 
 def refresh_wallet():

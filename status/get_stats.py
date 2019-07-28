@@ -10,6 +10,7 @@ now = time.time()
 stats_data = []
 # The BTC and KMD address here must remain the same.
 # Do not need to enter yours!
+mining = 0
 txscanamount = 10080 # one week. If not NTX for this long, something broken!
 ntrzdamt=-0.00083600
 timefilter2=1525513998
@@ -35,14 +36,20 @@ for coin in coinlist:
         ntx_Radd = '1P3rU1Nk1pmc2BiWC8dEy9bZa1ZbMp5jfg'
     else:
         ntx_Radd = 'RXL3YXG2ceaB6C5hfJcN4fvmLH2C34knhA'
-    coin_str = '{:^11}'.format(coin) 
+    coin_str = coin
     wallet_info = rpc[coin].getwalletinfo()
+    if coin not in ['BTC', 'EMC2', 'GIN', 'GAME']:
+        if rpc[coin].getgenerate()['generate'] is True:
+            coin_str = coin_str+"*"
+    coin_str = '{:^11}'.format(coin_str)
+    chaininfo = rpc[coin].getblockchaininfo()
     balance = '{:^9}'.format(str(wallet_info['balance'])[:7])
     txcount = '{:^6}'.format(str(wallet_info['txcount']))
-    sync_pct = '{:^8}'.format(str(rpc[coin].getblockchaininfo()['verificationprogress']*100)[:5]+"%")
+    sync_pct = '{:^8}'.format(str(chaininfo['verificationprogress']*100)[:5]+"%")
     unspent = unspent_count(coin)
     utxos = '{:^6}'.format(str(unspent[0]))
     dust = '{:^6}'.format(str(unspent[1]))
+    dif = chaininfo['difficulty']
     last_ntx_time = 0
     last_mined_time = 0
     ntx_24hr = 0
@@ -72,7 +79,8 @@ for coin in coinlist:
               +utxos+"|"+dust+"|" \
               +txcount+"|"+sync_pct+"|" \
               +last_ntx+"|"+ntx_24hr+"|" \
-              +connected+"|"+last_mined+"|")
+              +connected+"|"+last_mined+"|"\
+              +str(dif)+"|")
     json_row = {
                 "coin": coin_str.strip(), "bal": balance.strip(), "utxos": utxos.strip(),
                 "dust": dust.strip(), "txs": txcount.strip(), "sync": sync_pct.strip(),
