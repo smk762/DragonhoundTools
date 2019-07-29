@@ -271,8 +271,12 @@ def display_time(seconds, granularity=1):
 rpc = {}
 if this_node == 'primary':
     coinlist.append('BTC')
-for coin in coinlist:
-    rpc[coin] = def_creds(coin)
+try:
+    for coin in coinlist:
+        rpc[coin] = def_creds(coin)
+except Exception as e:
+    print("RPCs Error: "+e)
+    pass
 
 try:
     rpc['ORACLEARTH'] = def_creds('ORACLEARTH')
