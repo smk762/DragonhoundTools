@@ -13,6 +13,8 @@ from urllib.parse import urlparse
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'applibs'))
 from nspvlib import *
 from mm2lib import *
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'shared'))
+from kmdlib import *
 
 # Get and set config
 cwd = os.getcwd()
@@ -25,7 +27,15 @@ CI_app_list = { 'mm2':{'repo':'https://github.com/KomodoPlatform/atomicDEX-API',
                 'nspv':{'repo':'https://github.com/jl777/libnspv',
                         'branch':'jl777',
                         'ip':'http://127.0.0.1',
-                        'port':'7777'}
+                        'port':'7777'},
+                'kmd-master':{'repo':'https://github.com/KomodoPlatform/komodo',
+                        'branch':'master',
+                        'ip':'http://127.0.0.1',
+                        'port':'7771'},
+                'kmd-jl777-beta':{'repo':'https://github.com/jl777/komodo',
+                        'branch':'beta',
+                        'ip':'http://127.0.0.1',
+                        'port':'7771'}
                 }
 
 qa_folder = home+"/qa"
@@ -72,12 +82,22 @@ def build_commit(app, branch=False, commit=False):
             pass
         #TODO: confirm this works after merging
         os.chdir(repo_path)
-        print(repo_path)
         build_proc = subprocess.run(['cargo', 'build', '--features', 'native', '-vv'], check=True, stdout=subprocess.PIPE, universal_newlines=True)
         print(build_proc.stdout)
         shutil.move(qa_path+"/config/MM2.json", repo_path+"/target/debug/MM2.json")
         os.chdir(repo_path+"/target/debug/")
-        Popen([repo_path+"/target/debug/mm2"], stdout=test_output, stderr=test_output, universal_newlines=True)
+        subprocess.Popen([repo_path+"/target/debug/mm2"], stdout=test_output, stderr=test_output, universal_newlines=True)
+    elif app == 'kmd-jl777-beta':
+        try:
+            rpc['KMD'].stop()
+        except:
+            pass
+        os.chdir(repo_path)
+        zparam_proc = subprocess.run(['./zcutil/fetch-params.sh'], check=True, stdout=subprocess.PIPE, universal_newlines=True)
+        print(zparam_proc.stdout)
+        build_proc = subprocess.run(['./zcutil/build.sh', '-j8'], check=True, stdout=subprocess.PIPE, universal_newlines=True)
+        print(build_proc.stdout)
+        subprocess.Popen([repo_path+"/komodod"], stdout=test_output, stderr=test_output, universal_newlines=True)
     elif app == 'nspv':
         try:
             nspv_stop(nspv_ip, 'userpass') # TODO: rename func in nspvlib
@@ -89,7 +109,6 @@ def build_commit(app, branch=False, commit=False):
         print(build_proc.stdout)
         os.chdir(repo_path)
         make_proc = subprocess.run(['make', 'check'], check=True, stdout=subprocess.PIPE, universal_newlines=True)
-        
         print(make_proc.stdout)
         os.chdir(tests_path)
         #subprocess.run([repo_path+"/nspv", "KMD", "-p", "7777"], stdout=test_output, stderr=test_output, universal_newlines=True)
