@@ -1,20 +1,15 @@
 #!/usr/bin/env python3
 import os
 import sys
-import json
-import time
-import requests
-from os.path import expanduser
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'qa'))
+from qalib import *
 
-# Get and set config
-cwd = os.getcwd()
-home = expanduser("~")
-port = 7771
+port = 7777
 local_ip = "http://127.0.0.1:"+str(port)
 userpass = "userpass"
 
 supported_coins = {
-                  "KMD":{"port":7771}
+                  "KMD":{"port":7777}
                   }
 
 def nspv_broadcast(node_ip, user_pass, rawhex):

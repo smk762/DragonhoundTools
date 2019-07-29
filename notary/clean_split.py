@@ -16,17 +16,17 @@ for coin in coinlist:
        sw = sweep_funds(coin, 25)
   except:
     pass
-  sp = split_funds(coin, 60)
+  sp = split_funds(coin, 80)
   print(sp)
   dif = rpc[coin].getblockchaininfo()['difficulty']
 
 if coin not in ['BTC', 'EMC2', 'GIN', 'GAME', 'KMD']:
   if rpc[coin].getgenerate()['generate'] is True:
     mining += 1
-    if mining > 6:
+    if mining > 6 or float(dif) > 2:
       rpc[coin].setgenerate(False)
       mining -= 1
   elif rpc[coin].getgenerate()['generate'] is False:
-      if dif == 1 and mining < 6:
+      if float(dif) < 2 and mining < 6:
           rpc[coin].setgenerate(True, 1)
           mining += 1

@@ -1,58 +1,61 @@
 #!/usr/bin/env python3
+import os
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'shared'))
 from kmdlib import *
 
+# DOCS: https://developers.komodoplatform.com/basic-docs/antara/antara-api/oracles.html
+
 oracletypes = [ 's', 'S', 'd', 'D', 'c', 't', 'i', 'l', 'h', 'Ihh']
-def create_oracle(chain, name, description, oracletype):
-    rpc_connection = def_credentials(chain)
+def create_oracle(coin, name, description, oracletype):
     if oracletype not in oracletypes:
         errmsg = str(oracletype)+' is not a valid Oracle type. See https://developers.komodoplatform.com/basic-docs/cryptoconditions/cc-oracles.html#oraclescreate for details'
         print(colorize(errmsg, 'red'))
         exit(1)
-    result = rpc_connection.oraclescreate(name, description, oracletype)
+    result = rpc[coin].oraclescreate(name, description, oracletype)
     oracleHex=result['hex']
     oracleResult=result['result']
     while oracleResult != 'success':
-        result = rpc_connection.oraclescreate(name, description, oracletype)
+        result = rpc[coin].oraclescreate(name, description, oracletype)
         oracleHex=result['hex']
         oracleResult=result['result']
-    oracletxid = rpc_connection.sendrawtransaction(oracleHex)
+    oracletxid = rpc[coin].sendrawtransaction(oracleHex)
     while len(oracletxid) != 64:
         time.sleep(15)
-        oracletxid = rpc_connection.sendrawtransaction(oracleHex)
+        oracletxid = rpc[coin].sendrawtransaction(oracleHex)
     print(colorize("Oracle ["+oracletxid+"] created!", 'green'))
     return oracletxid
 
 
-def register_oracle(chain, oracletxid, datafee):
-    rpc_connection = def_credentials(chain)
+def register_oracle(coin, oracletxid, datafee):
     datafee=str(datafee)
-    pubkey = rpc_connection.getinfo()['pubkey']
-    rego = rpc_connection.oraclesregister(oracletxid, datafee)
+    pubkey = rpc[coin].getinfo()['pubkey']
+    rego = rpc[coin].oraclesregister(oracletxid, datafee)
     if rego['result'] == 'error':
         print(colorize(rego['error'], 'red'))
         exit(1)
     oracleHex=rego['hex']
     oracleResult=rego['result']
     while oracleResult != 'success':
-        rego = rpc_connection.oraclesregister(oracletxid, datafee)
+        rego = rpc[coin].oraclesregister(oracletxid, datafee)
         oracleHex=rego['hex']
         oracleResult=rego['result']
-    regotx = rpc_connection.sendrawtransaction(oracleHex)
+    regotx = rpc[coin].sendrawtransaction(oracleHex)
     print(colorize('sending oracle registration tx', 'blue'))
     while len(regotx) != 64:
         time.sleep(15)
-        regotx = rpc_connection.sendrawtransaction(oracleHex)  
+        regotx = rpc[coin].sendrawtransaction(oracleHex)  
         print(colorize('sending oracle registration tx', 'blue'))    
-    memPool = str(rpc_connection.getrawmempool())
+    memPool = str(rpc[coin].getrawmempool())
     while memPool.find(regotx) < 0:
         time.sleep(5)
-        memPool = str(rpc_connection.getrawmempool())
-    orcl_info = rpc_connection.oraclesinfo(oracletxid)
+        memPool = str(rpc[coin].getrawmempool())
+    orcl_info = rpc[coin].oraclesinfo(oracletxid)
     reg_json=orcl_info['registered']
     while len(reg_json) < 1:
         print(colorize('waiting for oracle registration', 'blue'))
         time.sleep(15)
-        orcl_info = rpc_connection.oraclesinfo(oracletxid)
+        orcl_info = rpc[coin].oraclesinfo(oracletxid)
         reg_json=orcl_info['registered']
     for reg_pub in reg_json:
         if reg_pub['publisher'] == pubkey:
@@ -61,10 +64,9 @@ def register_oracle(chain, oracletxid, datafee):
             print(colorize("publisher ["+publisher+"] registered on oracle ["+oracletxid+"]!", 'green'))
     return publisher
 
-def fund_oracle(chain, oracletxid, publisher, funds):
-    rpc_connection = def_credentials(chain)
-    pubkey = rpc_connection.getinfo()['pubkey']
-    orcl_info = rpc_connection.oraclesinfo(oracletxid)
+def fund_oracle(coin, oracletxid, publisher, funds):
+    pubkey = rpc[coin].getinfo()['pubkey']
+    orcl_info = rpc[coin].oraclesinfo(oracletxid)
     reg_json=orcl_info['registered']
     for reg_pub in reg_json:
         if reg_pub['publisher'] == pubkey:
@@ -75,13 +77,13 @@ def fund_oracle(chain, oracletxid, publisher, funds):
         subtx = ''
         while len(subtx) != 64:
             print(colorize("Sending funds "+str(x)+"/10 to oracle", 'blue'))
-            subHex = rpc_connection.oraclessubscribe(oracletxid, publisher, str(amount))['hex']
-            subtx = rpc_connection.sendrawtransaction(subHex)
+            subHex = rpc[coin].oraclessubscribe(oracletxid, publisher, str(amount))['hex']
+            subtx = rpc[coin].sendrawtransaction(subHex)
             time.sleep(5)
         sub_transactions.append(subtx)
         print(colorize("Funds "+str(x)+"/10 sent to oracle", 'blue'))
     while exisingFunds < 1:
-        orcl_info = rpc_connection.oraclesinfo(oracletxid)
+        orcl_info = rpc[coin].oraclesinfo(oracletxid)
         reg_json=orcl_info['registered']
         for reg_pub in reg_json:
             if reg_pub['publisher'] == pubkey:
@@ -90,8 +92,7 @@ def fund_oracle(chain, oracletxid, publisher, funds):
         time.sleep(15)
     print(colorize("Finished sending "+str(funds)+" to oracle.", 'green'))
 
-def write2oracle(chain, oracletxid, message):
-    rpc_connection = def_credentials(chain)
+def write2oracle(coin, oracletxid, message):
     rawhex = codecs.encode(message).hex()
     bytelen = int(len(rawhex) / int(2))
     hexlen = format(bytelen, 'x')
@@ -107,26 +108,25 @@ def write2oracle(chain, oracletxid, message):
         print("message too large, must be less than 65536 characters")
     lilend = bigend[2] + bigend[3] + bigend[0] + bigend[1]
     fullhex = lilend + rawhex
-    oraclesdata_result = rpc_connection.oraclesdata(oracletxid, fullhex)
+    oraclesdata_result = rpc[coin].oraclesdata(oracletxid, fullhex)
     result = oraclesdata_result['result']
     if result == 'error':
         print('ERROR:' + oraclesdata_result['error'] + ', try using oraclesregister if you have not already, and check the oracle is funded')
     else:
         rawtx = oraclesdata_result['hex']
-        sendrawtransaction_result = rpc_connection.sendrawtransaction(rawtx)
+        sendrawtransaction_result = rpc[coin].sendrawtransaction(rawtx)
     print(colorize("Message ["+message+"] written to oracle.", 'green'))
     return result
 
-def read_oracle(chain, oracletxid, numrec):
-    rpc_connection = def_credentials(chain)
-    pubkey = rpc_connection.getinfo()['pubkey']
-    orcl_info = rpc_connection.oraclesinfo(oracletxid)
+def read_oracle(coin, oracletxid, numrec):
+    pubkey = rpc[coin].getinfo()['pubkey']
+    orcl_info = rpc[coin].oraclesinfo(oracletxid)
     reg_json=orcl_info['registered']
     for reg_pub in reg_json:
         if reg_pub['publisher'] == pubkey:
             batonutxo=reg_pub['batontxid']
     if 'batonutxo' in locals():
-        samples = rpc_connection.oraclessamples(oracletxid, batonutxo, str(numrec))
+        samples = rpc[coin].oraclessamples(oracletxid, batonutxo, str(numrec))
         print(colorize("ERROR: Oracle records retrieved.", 'red'))
         return samples['samples']
     else:
@@ -134,7 +134,7 @@ def read_oracle(chain, oracletxid, numrec):
 
 
 
-def check_oracleFunds(chain, oracletxid, pubkey):
+def check_oracleFunds(coin, oracletxid, pubkey):
     oraclesinfo = rpc[chain].oraclesinfo(oracletxid)
     publishers = []
     funds = 0
@@ -153,7 +153,7 @@ def check_oracleFunds(chain, oracletxid, pubkey):
             sys.exit(1)
         time.sleep(20)
     
-def add_oracleFunds(chain, oracletxid, pubkey):
+def add_oracleFunds(coin, oracletxid, pubkey):
     oe_bal = rpc[chain].getbalance()
     if oe_bal < 100:
         print(chain+" balance: "+str(oe_bal)+" (need > 100)")

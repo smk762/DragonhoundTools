@@ -4,7 +4,6 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'qa'))
 from qalib import *
 
-
 # TODO: move this to config.json
 source_ip="127.0.0.1"
 external_ip="116.203.120.163"

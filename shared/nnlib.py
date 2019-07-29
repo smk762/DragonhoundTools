@@ -110,9 +110,9 @@ def split_funds(coin, target=80):
         if coin == 'KMD':
             rpc[coin].setgenerate(True, 1)
             target = target*4
-            threshold = int(target/6)
+            threshold = int(target/8)
         else:
-            threshold = int(target/4)
+            threshold = int(target/6)
         split_num = target - utxo_count
         output = ' | '+'{:^9}'.format(coin)+" | " \
         +'{:^6}'.format(str(bal))+" | " \
