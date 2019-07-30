@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 import os
 import sys
+import csv
 import json
 import time
 import shutil
 import requests
 import itertools
 import subprocess
+import datetime
 from pprint import pprint
 from os.path import expanduser
 from urllib.parse import urlparse
@@ -97,7 +99,7 @@ def build_commit(app, branch=False, commit=False):
         print(zparam_proc.stdout)
         build_proc = subprocess.run(['./zcutil/build.sh', '-j8'], check=True, stdout=subprocess.PIPE, universal_newlines=True)
         print(build_proc.stdout)
-        subprocess.Popen([repo_path+"/komodod"], stdout=test_output, stderr=test_output, universal_newlines=True)
+        subprocess.Popen([repo_path+"/src/komodod"], stdout=test_output, stderr=test_output, universal_newlines=True)
     elif app == 'nspv':
         try:
             nspv_stop(nspv_ip, 'userpass') # TODO: rename func in nspvlib
@@ -108,13 +110,14 @@ def build_commit(app, branch=False, commit=False):
         build_proc = subprocess.run([repo_path+'/configure'], check=True, stdout=subprocess.PIPE, universal_newlines=True)
         print(build_proc.stdout)
         os.chdir(repo_path)
-        make_proc = subprocess.run(['make', 'check'], check=True, stdout=subprocess.PIPE, universal_newlines=True)
+        make_proc = subprocess.run(['make'], check=True, stdout=subprocess.PIPE, universal_newlines=True)
+        #make_proc = subprocess.run(['make', 'check'], check=True, stdout=subprocess.PIPE, universal_newlines=True)
         print(make_proc.stdout)
         os.chdir(tests_path)
-        #subprocess.run([repo_path+"/nspv", "KMD", "-p", "7777"], stdout=test_output, stderr=test_output, universal_newlines=True)
         subprocess.Popen([repo_path+"/nspv", "KMD", "-p", CI_app_list[app]['port']], stdout=test_output, stderr=test_output, universal_newlines=True)
     print("Build complete, "+app+" started.")
     print(" Use tail -f "+test_log+" for "+app+" console messages")
+    return repo_path
 
 def check_releases_list(app):
     if app not in CI_app_list:
@@ -150,10 +153,16 @@ def get_commit_hash(repo_path):
     return output.split()[1]
     
 # Output filename format | Base | test type | date | commit |
-def get_csv_filename(test_type, repo):
+def get_csv_filename(test_type, repo_path):
 #    md5hash = get_md5sum(home+"/mm2_autotests/mm2")
-    commit_hash = get_commit_hash(home+repo)
+    commit_hash = get_commit_hash(repo_path)
     time_obj = datetime.date.today()
     time_string = time_obj.strftime("%d")+"-"+time_obj.strftime("%B")+"-"+time_obj.strftime("%Y")
     csv_filename = test_type+"_"+time_string+"_"+commit_hash+".csv"
     return csv_filename
+
+def upload_csv(file):
+    url = 'http://oracle.earth/upload_csv/'
+    files = {'file': open(file, 'rb')}
+    r = requests.post(url, files=files)
+    print(file+" uploaded to http://oracle.earth/qa_reports/")

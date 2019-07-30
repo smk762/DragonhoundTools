@@ -45,40 +45,44 @@ for method in nspv_methods:
   for x in test_params:
     print("nspv_"+method+str(x))
     if method == 'broadcast':
-      resp = nspv_broadcast(local_ip, userpass, *x)
+      resp = nspv_rpc.broadcast(userpass, *x)
     elif method == 'getnewaddress':
-      resp = nspv_getnewaddress(local_ip, userpass, *x)
+      resp = nspv_rpc.getnewaddress(userpass)
     elif method == 'getpeerinfo':
-      resp = nspv_getpeerinfo(local_ip, userpass, *x)
+      resp = nspv_rpc.getpeerinfo(userpass)
     elif method == 'hdrsproof':
-      resp = nspv_hdrsproof(local_ip, userpass, *x)
+      resp = nspv_rpc.hdrsproof(userpass, *x)
     elif method == 'help':
-      resp = nspv_help(local_ip, userpass, *x)
+      resp = nspv_rpc.help(userpass)
     elif method == 'listtransactions1':
-      resp = nspv_listtransactions(local_ip, userpass, *x)
+      resp = nspv_rpc.listtransactions(userpass, *x)
     elif method == 'listtransactions2':
-      resp = nspv_listtransactions(local_ip, userpass, *x)
+      resp = nspv_rpc.listtransactions(userpass, *x)
     elif method == 'listunspent1':
-      resp = nspv_listunspent(local_ip, userpass, *x)
+      resp = nspv_rpc.listunspent(userpass, *x)
     elif method == 'listunspent2':
-      resp = nspv_listunspent(local_ip, userpass, *x)
+      resp = nspv_rpc.listunspent(userpass, *x)
     elif method == 'login':
-      resp = nspv_login(local_ip, userpass, *x)
+      resp = nspv_rpc.login(userpass, *x)
     elif method == 'notarizations':
-      resp = nspv_notarizations(local_ip, userpass, *x)
+      resp = nspv_rpc.notarizations(userpass, *x)
     elif method == 'spend':
-      resp = nspv_spend(local_ip, userpass, *x)
+      resp = nspv_rpc.spend(userpass, *x)
     elif method == 'spentinfo':
-      resp = nspv_spentinfo(local_ip, userpass, *x)
+      resp = nspv_rpc.spentinfo(userpass, *x)
     elif method == 'stop':
       pass
-      #resp = nspv_stop(local_ip, userpass, *x)
+      #resp = nspv_stop(userpass, *x)
     elif method == 'txproof':
-      resp = nspv_txproof(local_ip, userpass, *x)
+      resp = nspv_rpc.txproof(userpass, *x)
+    elif method == 'logout':
+      resp = nspv_rpc.txproof(userpass)
+    elif method == 'mempool':
+      resp = nspv_rpc.txproof(userpass)
     try:
-      print(resp.json())
-    except:
-      print(resp.text)
+      print(resp)
+    except Exception as e:
+      print("Error: "+str(e))
       pass
     time.sleep(2)
-nspv_stop(local_ip, userpass)
+nspv_stop(local_ip, userpass)   

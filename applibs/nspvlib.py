@@ -4,10 +4,6 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'qa'))
 from qalib import *
 
-port = 7777
-local_ip = "http://127.0.0.1:"+str(port)
-userpass = "userpass"
-
 supported_coins = {
                   "KMD":{"port":7777}
                   }
