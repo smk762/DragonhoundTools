@@ -44,6 +44,43 @@ qa_folder = home+"/qa"
 if not os.path.exists(qa_folder):
     os.mkdir(qa_folder)
 
+def launch_chain(chain, paramlist, kmd_path, pubkey=''):
+    if pubkey != '':
+        paramlist.append("-pubkey="+pubkey)
+    rpc[chain] = def_creds(chain)
+    try:
+        blocks = int(rpc[chain].getinfo()['blocks'])
+        rpc[chain].stop()
+        print("Stopping "+chain)
+        time.sleep(60)
+    except:
+        pass
+    commit = get_commit_hash(kmd_path)
+    test_log = chain+"_"+commit+".log"
+    test_output = open(test_log,'w+')
+    print(paramlist)
+    subprocess.Popen([kmd_path+"/komodod"]+paramlist, stdout=test_output, stderr=test_output, universal_newlines=True)
+    loop = 0
+    try:
+        blocks = int(rpc[chain].getinfo()['blocks'])
+    except:
+        blocks = 0
+        pass
+    while blocks == 0:
+        time.sleep(20)
+        loop += 1
+        try:
+            blocks = int(rpc[chain].getinfo()['blocks'])
+        except:
+            blocks = 0
+            pass
+        if loop > 20:
+            print("Something went wrong. Chain probably already running.")
+            break
+    print(" Use tail -f "+kmd_path+"/"+test_log+" for "+chain+" console messages")
+
+
+
 def build_commit(app, branch=False, commit=False):
     repo_url = CI_app_list[app]['repo']
     repo_parse = urlparse(repo_url)

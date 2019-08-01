@@ -4,14 +4,13 @@ import sys
 import subprocess
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'shared'))
 from kmdlib import *
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'cc'))
 from tokenslib import *
 from oracleslib import *
 
 # DOCS: https://developers.komodoplatform.com/basic-docs/antara/antara-api/gateways.html
 
 def bind_gateway(coin, tokentxid, oracletxid, tokenname, tokensupply, N, M, gatewayspubkey, pubtype, p2shtype, wiftype):
-    if M != str(1) or N != str(1):
+    if M != 1 or N != 1:
         print(colorize("Multisig gateway not yet supported in script, using 1 of 1.", 'red'))
         M = 1
         N = 1
@@ -25,20 +24,20 @@ def bind_gateway(coin, tokentxid, oracletxid, tokenname, tokensupply, N, M, gate
         exit(1)
 
 def create_gateway(coin, tokenname, tokensupply, tokendesc):
-    tokentxid = token_create(coin, tokenname, tokensupply, tokendesc)
-    oracletxid = create_oracle(coin, tokenname, 'blockheaders', 'Ihh')
+    token_txid = token_create(coin, tokenname, tokensupply, tokendesc)
+    oracle_txid = create_oracle(coin, tokenname, 'blockheaders', 'Ihh')
     oraclepublisher = rpc[coin].getinfo()['pubkey']
     gateway_N = 1
     gateway_M = 1
     tokensatsupply = 100000000*int(tokensupply)
-    bind_txid = bind_gateway(coin, tokentxid, oracletxid, tokenname, tokensatsupply, gateway_N, gateway_M, oraclepublisher, 60, 85, 188)
-    return bind_txid
+    print("bind_gateway("+coin+", "+token_txid+", "+oracle_txid+", "+tokenname+", "+str(tokensatsupply)+", "+str(gateway_N)+", "+str(gateway_M)+", "+oraclepublisher+", 60, 85, 188"))
+    bind_txid = bind_gateway(coin, token_txid, oracle_txid, tokenname, tokensatsupply, gateway_N, gateway_M, oraclepublisher, 60, 85, 188)
+    return bind_txid, oracle_txid
 
 def spawn_oraclefeed(coin, komodo_path, oracle_txid, bind_txid):
     oraclefeed_log = cwd+"/oraclefeed.log"
     oraclefeed_output = open(oraclefeed_log,'w+')
     os.chdir(komodo_path)
-    gcc cc/dapps/oraclefeed.c -lm -o oraclefeed
     build_proc = subprocess.run(['gcc', 'cc/dapps/oraclefeed.c' '-lm' '-o' 'oraclefeed'], check=True, stdout=subprocess.PIPE, universal_newlines=True)
     print(build_proc.stdout)
     pubkey = rpc[coin].getinfo()['pubkey']

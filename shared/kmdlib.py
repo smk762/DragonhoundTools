@@ -131,6 +131,9 @@ def is_chain_synced(chain):
     else:
         return([blocks, longestchain])
 
+def importprivkey_since(coin, blocks_back):
+    rpc[coin].importprivkey("", "", True, blocks_back)
+
 def wait_confirm(coin, txid):
     start_time = time.time()
     while txid in rpc[coin].getrawmempool():

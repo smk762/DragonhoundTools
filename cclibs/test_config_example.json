@@ -1,0 +1,10 @@
+{
+	"kmd_addr":"enter address for testing",
+	"kmd_wif":"enter wif for testing address",
+	"kmd_pub":"enter pubkey for testing address",
+	"gateways_chain":"TESTPEGS",
+	"gateways_chain_params":"-ac_name=TESTPEGS -ac_supply=100000000 -ac_reward=10000000000 -ac_staked=99 -ac_cc=762 -ac_halving=762000 -addnode=116.203.120.91 -addnode=116.203.120.163",
+	"gateways_addr":"enter address for testing",
+	"gateways_wif":"enter wif for testing address",
+	"gateways_pub":"enter address for testing",
+}

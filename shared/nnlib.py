@@ -109,8 +109,8 @@ def split_funds(coin, target=80):
         utxo_count = int(unspent_count(coin)[0])
         if coin == 'KMD':
             rpc[coin].setgenerate(True, 1)
-            target = target*4
-            threshold = int(target/8)
+            target = target*2
+            threshold = int(target/6)
         else:
             threshold = int(target/6)
         split_num = target - utxo_count
@@ -198,7 +198,7 @@ def consolidate(coin, tx_delay=900):
             txid = rpc[coin].sendtoaddress(nn_Radd, bal, "", "", True)
             wait_confirm(coin, txid)
             time.sleep(30)
-            rpc[coin].cleanwallettransactions()
+            rpc[coin].cleanwallettransactions(txid)
 
 
 def refresh_wallet():

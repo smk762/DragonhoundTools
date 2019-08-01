@@ -6,7 +6,7 @@ from kmdlib import *
 
 # DOCS: https://developers.komodoplatform.com/basic-docs/antara/antara-api/oracles.html
 
-def create_oracle(coin, oracle_name, oracle_description, oracletype, datafee=10000):
+def create_oracle(coin, oracle_name, oracle_description, oracletype, datafee=100000):
     result = rpc[coin].oraclescreate(str(oracle_name), str(oracle_description), oracletype)
     oracleHex=result['hex']
     oracleResult=result['result']
@@ -21,9 +21,15 @@ def create_oracle(coin, oracle_name, oracle_description, oracletype, datafee=100
         memPool = str(rpc[coin].getrawmempool())
     print("Oracle created. TXID: "+oracle_txid)
     oraclesList = str(rpc[coin].oracleslist())
+    loop = 0
     while oraclesList.find(oracle_txid) < 0:
+        loop += 1
         time.sleep(15)
         oraclesList = str(rpc[coin].oracleslist())
+        print("Waiting for oracle to list, "+str(15*loop)+" sec")
+        if loop > 20:
+            print("Oracle didnt list, exiting.")
+            sys.exit(0)
     print("Oracle Listing confirmed")
     fund = rpc[coin].oraclesfund(oracle_txid)
     oracleHex=fund['hex']
@@ -32,26 +38,19 @@ def create_oracle(coin, oracle_name, oracle_description, oracletype, datafee=100
         fund = rpc[coin].oraclesfund(oracle_txid)
         oracleHex=fund['hex']
         oracleResult=fund['result']
-    result = rpc[coin].sendrawtransaction(oracleHex)
-    while len(result) != 64:
-        time.sleep(15)
-        result = rpc[coin].sendrawtransaction(oracleHex)
+    fund_txid = rpc[coin].sendrawtransaction(oracleHex)
     print("Oracle funded")
-    rego = rpc[coin].oraclesregister(oracle_txid, datafee)
+    wait_confirm(coin, fund_txid)
+    print("komodo-cli -ac_name="+coin+" oraclesregister "+oracle_txid+" "+str(datafee))
+    rego = rpc[coin].oraclesregister(oracle_txid, str(datafee))
     oracleHex=rego['hex']
     oracleResult=rego['result']
     while oracleResult != 'success':
-        rego = rpc[coin].oraclesregister(oracle_txid, datafee)
+        rego = rpc[coin].oraclesregister(oracle_txid, str(datafee))
         oracleHex=rego['hex']
         oracleResult=rego['result']
-    rego_hex = rpc[coin].sendrawtransaction(oracleHex)
-    while len(rego_hex) != 64:
-        time.sleep(15)
-        rego_hex = rpc[coin].sendrawtransaction(oracleHex)
-    memPool = str(rpc[coin].getrawmempool())
-    while memPool.find(rego_hex) < 0:
-        time.sleep(15)
-        memPool = str(rpc[coin].getrawmempool())
+    rego_txid = rpc[coin].sendrawtransaction(oracleHex)
+    wait_confirm(coin, rego_txid)
     print("Oracle registered")
     orcl_info = rpc[coin].oraclesinfo(oracle_txid)
     reg_json=orcl_info['registered']
