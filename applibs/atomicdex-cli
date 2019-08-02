@@ -4,7 +4,7 @@ import requests
 from pprint import pprint
 from mm2lib import *
 
-node_ip = "http://"+source_node_ip+":7783"
+node_ip = "http://"+source_ip+":7783"
 try:
     method = sys.argv[1]
 except:
