@@ -161,7 +161,15 @@ def cancel_pair(node_ip, user_pass, base, rel):
 
 ### Order Placement
 
-def setprice(node_ip, user_pass, base, rel, basevolume, relprice, trademax=False, cancel_previous=True):
+def setprice(node_ip, user_pass, base, rel, basevolume, trademax=False, cancel_previous=True):
+    for coin in coins:
+      if coin['tag'] == base:
+        base_id = coin['api-id']
+      if coin['tag'] == rel:
+        rel_id = coin['api-id']
+    gecko_prices = get_gecko_price_pair(base_id, rel_id)
+    relprice = gecko_prices[1]/gecko_prices[0]
+    print("Relprice: "+str(relprice))
     params = {'userpass': user_pass,
               'method': 'setprice',
               'base': base,
@@ -173,7 +181,15 @@ def setprice(node_ip, user_pass, base, rel, basevolume, relprice, trademax=False
     r = requests.post(node_ip, json=params)
     return r
 
-def buy(node_ip, user_pass, base, rel, basevolume, relprice):
+def buy(node_ip, user_pass, base, rel, basevolume):
+    for coin in coins:
+      if coin['tag'] == base:
+        base_id = coin['api-id']
+      if coin['tag'] == rel:
+        rel_id = coin['api-id']
+    gecko_prices = get_gecko_price_pair(base_id, rel_id)
+    relprice = gecko_prices[1]/gecko_prices[0]
+    print("Relprice: "+str(relprice))
     params ={'userpass': user_pass,
              'method': 'buy',
              'base': base,
@@ -183,7 +199,15 @@ def buy(node_ip, user_pass, base, rel, basevolume, relprice):
     r = requests.post(node_ip,json=params)
     return r
 
-def sell(node_ip, user_pass, base, rel, basevolume, relprice):
+def sell(node_ip, user_pass, base, rel, basevolume):
+    for coin in coins:
+      if coin['tag'] == base:
+        base_id = coin['api-id']
+      if coin['tag'] == rel:
+        rel_id = coin['api-id']
+    gecko_prices = get_gecko_price_pair(base_id, rel_id)
+    relprice = gecko_prices[1]/gecko_prices[0]
+    print("Relprice: "+str(relprice))
     params = {'userpass': user_pass,
               'method': 'sell',
               'base': base,
@@ -278,8 +302,7 @@ def activate_all(node_ip, user_pass, coins):
     else:
       r = electrum(node_ip, user_pass, coin['tag'])
       print("Activating "+coin['tag']+" with electrum")
-    print(r.json())
-    
+    print(r.json())    
 
 def my_balances(node_ip, user_pass, coins):
     api_coins = {"BTC":"bitcoin","BCH":"bitcoin-cash","DGB":"digibyte","DASH":"dash",
@@ -325,3 +348,30 @@ def orderbooks(node_ip, user_pass, coins):
                 except Exception as e:
                     print("Orderbooks error: "+str(e))
                     sys.exit(0)
+
+def get_gecko_price(api_id):
+  if api_id == 'no-api':
+    print(api_id+" not supported on coin gecko")
+    return 'no price'
+  else:
+    url = 'https://api.coingecko.com/api/v3/simple/price'
+    params = dict(ids=api_id,vs_currencies='usd')
+    r = requests.get(url=url, params=params).json()
+    price = r['usd']
+    print(api_id+": "+str(price))
+    return price
+
+def get_gecko_price_pair(base_id, rel_id):
+  if base_id == 'no-api' or rel_id == 'no-api':
+    print("Pair not supported on coin gecko")
+    return 'no price', 'no price'
+  else:
+    url = 'https://api.coingecko.com/api/v3/simple/price'
+    coin_string = base_id+","+rel_id
+    params = dict(ids=coin_string,vs_currencies='usd')
+    r = requests.get(url=url, params=params).json()
+    baseprice = r[base_id]['usd']
+    relprice = r[rel_id]['usd']
+    print(base_id+": "+str(baseprice))
+    print(rel_id+": "+str(relprice))
+    return baseprice, relprice

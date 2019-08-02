@@ -1,6 +1,7 @@
 coins = [
     {
         "tag": "RICK",
+        "api-id": "no-api",
         "min_swap": 1,
         "electrum": [{"url":"electrum1.cipig.net:10017"},
                      {"url":"electrum2.cipig.net:10017"},
@@ -56,6 +57,7 @@ coins = [
     },
     {
         "tag": "MORTY",
+        "api-id": "no-api",
         "min_swap": 1,
         "electrum": [{"url":"electrum1.cipig.net:10018"},
                      {"url":"electrum2.cipig.net:10018"},
@@ -96,6 +98,7 @@ coins = [
     },
     {
         "tag": "LABS",
+        "api-id": "no-api",
         "min_swap": 5,
         "electrum": [{"url":"electrum1.cipig.net:10019"},
                      {"url":"electrum2.cipig.net:10019"},
@@ -103,6 +106,7 @@ coins = [
     },
     {
         "tag": "RFOX",
+        "api-id": "redfox-labs",
         "min_swap": 5,
         "electrum": [{"url":"electrum1.cipig.net:10034"},
                      {"url":"electrum2.cipig.net:10034"},
@@ -110,6 +114,7 @@ coins = [
     },
     {
         "tag": "VERUS",
+        "api-id": "verus-coin",
         "min_swap": 0.1,
         "electrum": [{"url":"electrum1.cipig.net:10021"},
                      {"url":"electrum2.cipig.net:10021"},
@@ -117,6 +122,7 @@ coins = [
     },
     {
         "tag": "BCH",
+        "api-id": "bitcoin-cash",
         "min_swap": 0.01,
         "electrum": [{"url":"bch.imaginary.cash:50001"},
                      {"url":"electroncash.dk:50001"},
