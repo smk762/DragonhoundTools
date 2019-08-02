@@ -40,9 +40,9 @@ CI_app_list = { 'mm2':{'repo':'https://github.com/KomodoPlatform/atomicDEX-API',
                         'port':'7771'}
                 }
 
-qa_folder = home+"/qa"
-if not os.path.exists(qa_folder):
-    os.mkdir(qa_folder)
+qa_path = home+"/qa"
+if not os.path.exists(qa_path):
+    os.mkdir(qa_path)
 
 def launch_chain(chain, paramlist, kmd_path, pubkey=''):
     if pubkey != '':
@@ -86,7 +86,7 @@ def build_commit(app, branch=False, commit=False):
     repo_parse = urlparse(repo_url)
     repo_name = repo_parse.path.split('/')[-1]
     print("Building "+app+" binary from "+repo_url)
-    apps_path = qa_folder+"/"+app
+    apps_path = qa_path+"/"+app
     repo_path = apps_path+"/"+repo_name
     tests_path = apps_path+"/tests"
     logs_path = apps_path+"/logs"
