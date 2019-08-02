@@ -13,7 +13,7 @@ for coin in coinlist:
   try:
     if coin not in ignore:
        cl = clean_wallet(coin)
-       sw = sweep_funds(coin, 25)
+       #sw = sweep_funds(coin, 25)
   except:
     pass
   sp = split_funds(coin, 80)
@@ -23,10 +23,10 @@ for coin in coinlist:
 if coin not in ['BTC', 'EMC2', 'GIN', 'GAME', 'KMD']:
   if rpc[coin].getgenerate()['generate'] is True:
     mining += 1
-    if mining > 6 or float(dif) > 2:
+    if mining > 3 or float(dif) > 2:
       rpc[coin].setgenerate(False)
       mining -= 1
   elif rpc[coin].getgenerate()['generate'] is False:
-      if float(dif) < 2 and mining < 6:
+      if float(dif) < 2 and mining < 3:
           rpc[coin].setgenerate(True, 1)
           mining += 1

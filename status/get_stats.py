@@ -53,6 +53,7 @@ for coin in coinlist:
     last_ntx_time = 0
     last_mined_time = 0
     ntx_24hr = 0
+    
     txinfo = rpc[coin].listtransactions("", txscanamount)
     for tx in txinfo:
         if 'address' in tx:
@@ -61,7 +62,7 @@ for coin in coinlist:
                     last_ntx_time = int(tx['time'])
                 if tx['time'] > now - 86400:
                     ntx_24hr += 1
-        if 'category' in tx:
+        if 'category' in tx and coin == 'KMD':
             if tx['category'] == 'immature':
                 if tx['time'] > last_mined_time:
                     last_mined_time = int(tx['time'])

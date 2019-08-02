@@ -41,6 +41,9 @@ try:
     elif this_node == 'labs':
         labs_ac_json = config_json['labs_ac_json']
         coins_json = home+'/'+labs_ac_json
+    elif this_node == 'test':
+        labs_ac_json = config_json['komodo_ac_json']
+        coins_json = home+'/'+komodo_ac_json
 except Exception as e:
     print("config.json file needs an update!")
     print(e)

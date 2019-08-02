@@ -105,10 +105,8 @@ def sweep_funds(coin, reserve=25):  # A lower value may result in unmatured left
 
 def split_funds(coin, target=80):
         bal = format(rpc[coin].getbalance(), '^2.3')
-        #rpc[coin].lockunspent(True, unspent)
         utxo_count = int(unspent_count(coin)[0])
         if coin == 'KMD':
-            rpc[coin].setgenerate(True, 1)
             target = target*2
             threshold = int(target/6)
         else:
@@ -120,7 +118,7 @@ def split_funds(coin, target=80):
         +'{:^10}'.format(str(target)+" target")+" | " \
         +'{:^13}'.format(str(threshold)+" threshold")+" | "
         if float(bal) > 0:
-            clean_wallet(coin)
+            consolidate(coin)
         if threshold > utxo_count:
             if coin == 'GAME' or coin == 'EMC2':
                 utxosize=100000
@@ -131,23 +129,37 @@ def split_funds(coin, target=80):
                       'satoshis': utxosize, 'sendflag': 1 }
             r = requests.post("http://127.0.0.1:"+iguanaport, json=params)
             if r.text.find('couldnt create duplicates tx'):
-                consolidate(coin)
                 return output+'{:^25}'.format('Error splitting extra utxos')+' | '+str(r.json())
             else:
                 return output+'{:^25}'.format('Splitting '+str(split_num)+' extra utxos')+' | '+str(r.text)
         else:
             return output+'{:^25}'.format('No split required')+' | '
 
-def clean_wallet(coin, tx_max=120):
-    tx_count = int(rpc[coin].getwalletinfo()['txcount'])
-    if coin == 'KMD':
-        tx_max = tx_max*2
-    if tx_count > tx_max:
-        try:
-            consolidate(coin, 240)
-        except Exception as e:
-            print(e)
-            pass
+def consolidate(coin, tx_max=120):
+    if coin not in ['BTC', 'EMC2', 'GAME', 'GIN']:
+        tx_count = int(rpc[coin].getwalletinfo()['txcount'])
+        tx_cats = []
+        tx_list = rpc[coin].listtransactions("",tx_count)
+        for tx in tx_list:
+            tx_cats.append(tx['category'])
+        if coin == 'KMD':
+            tx_max = tx_max*2
+        if tx_count > tx_max:
+            if 'immature' not in tx_cats:
+                rpc[coin].cleanwallettransactions()
+            try:
+                bal = float(rpc[coin].getbalance())
+                if bal > 0:
+                    unspent = rpc[coin].listlockunspent()
+                    rpc[coin].lockunspent(True, unspent)
+                    print("Consolidating "+str(bal)+" "+coin+"s to "+nn_Radd)
+                    txid = rpc[coin].sendtoaddress(nn_Radd, bal, "", "", True)
+            except Exception as e:
+                print(e)
+                pass
+
+
+
 
 def format_param(param, value):
     return '-' + param + '=' + value
@@ -169,6 +181,21 @@ def get_params(coin):
 #            return(' '.join(params))
             return params
 
+def reindex_chain(coin):
+    rpc[coin].stop()
+    time.sleep(30)
+    params = get_params(coin)
+    Popen(["komodod", '-ac_name='+coin, '-reindex', "-pubkey="+pubkey]+params)
+
+
+
+
+def refresh_wallet():
+    print("pending")
+    pass
+    # importprivkey <privkey> "" false
+
+# NOT USED
 def move_chain(coin):
     print("tryna move "+coin)
     rpc[coin].setgenerate(True, 1)
@@ -179,29 +206,3 @@ def move_chain(coin):
         time.sleep(60)
         block_count = rpc[coin].getblockcount()
     rpc[coin].setgenerate(False)
-
-def reindex_chain(coin):
-    rpc[coin].stop()
-    time.sleep(30)
-    params = get_params(coin)
-    Popen(["komodod", '-ac_name='+coin, '-reindex', "-pubkey="+pubkey]+params)
-
-def consolidate(coin, tx_delay=900):    
-    last_tx = rpc[coin].listtransactions("", 1)[0]['timereceived']
-    now = time.time()
-    if int(now) > int(last_tx)+tx_delay:
-        bal = float(rpc[coin].getbalance())
-        if bal > 0:
-            unspent = rpc[coin].listlockunspent()
-            rpc[coin].lockunspent(True, unspent)
-            print("Consolidating "+str(bal)+" "+coin+"s to "+nn_Radd)
-            txid = rpc[coin].sendtoaddress(nn_Radd, bal, "", "", True)
-            wait_confirm(coin, txid)
-            time.sleep(30)
-            rpc[coin].cleanwallettransactions(txid)
-
-
-def refresh_wallet():
-    print("pending")
-    pass
-    # importprivkey <privkey> "" false
