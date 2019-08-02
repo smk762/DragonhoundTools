@@ -136,7 +136,133 @@ coins = [
                      "http://eth2.cipig.net:8555",
                      "http://eth3.cipig.net:8555"],
         "contract": "0x8500AFc0bc5214728082163326C2FF0C73f4a871"
-    }]
+    },
+    {
+        "tag": "ZEXO",
+        "api-id": "zaddex",
+        "min_swap": 1,
+        "activate_with":"electrum",
+        "electrum": [{"url":"electrum1.cipig.net:10035"},
+                     {"url":"electrum2.cipig.net:10035"},
+                     {"url":"electrum3.cipig.net:10035"}]
+    },
+    {
+        "tag": "OOT",
+        "api-id": "utrum",
+        "min_swap": 1,
+        "activate_with":"electrum",
+        "electrum": [{"url":"electrum1.utrum.io:10088"},
+                     {"url":"electrum2.utrum.io:10088"}]
+    },
+    {
+        "tag": "ZILLA",
+        "api-id": "zilla",
+        "min_swap": 1,
+        "activate_with":"electrum",
+        "electrum": [{"url":"electrum1.cipig.net:10028"},
+                     {"url":"electrum2.cipig.net:10028"},
+                     {"url":"electrum3.cipig.net:10028"}]
+    },
+    {
+        "tag": "HOT",
+        "min_swap": 1,
+        "api-id": "holotoken",
+        "activate_with":"electrum",
+        "electrum": ["http://eth1.cipig.net:8555",
+                     "http://eth2.cipig.net:8555",
+                     "http://eth3.cipig.net:8555"],
+        "contract": "0x8500AFc0bc5214728082163326C2FF0C73f4a871"
+    },
+    {
+        "tag": "LINK",
+        "min_swap": 1,
+        "api-id": "chainlink",
+        "activate_with":"electrum",
+        "electrum": ["http://eth1.cipig.net:8555",
+                     "http://eth2.cipig.net:8555",
+                     "http://eth3.cipig.net:8555"],
+        "contract": "0x8500AFc0bc5214728082163326C2FF0C73f4a871"
+    },
+    {
+        "tag": "NPXS",
+        "min_swap": 100,
+        "api-id": "pundi-x",
+        "activate_with":"electrum",
+        "electrum": ["http://eth1.cipig.net:8555",
+                     "http://eth2.cipig.net:8555",
+                     "http://eth3.cipig.net:8555"],
+        "contract": "0x8500AFc0bc5214728082163326C2FF0C73f4a871"
+    },
+    {
+        "tag": "SNT",
+        "min_swap": 3,
+        "api-id": "status",
+        "activate_with":"electrum",
+        "electrum": ["http://eth1.cipig.net:8555",
+                     "http://eth2.cipig.net:8555",
+                     "http://eth3.cipig.net:8555"],
+        "contract": "0x8500AFc0bc5214728082163326C2FF0C73f4a871"
+    },
+    {
+        "tag": "ENJ",
+        "min_swap": 1,
+        "api-id": "enjincoin",
+        "activate_with":"electrum",
+        "electrum": ["http://eth1.cipig.net:8555",
+                     "http://eth2.cipig.net:8555",
+                     "http://eth3.cipig.net:8555"],
+        "contract": "0x8500AFc0bc5214728082163326C2FF0C73f4a871"
+    },
+    {
+        "tag": "ZIL",
+        "min_swap": 1,
+        "api-id": "zilliqa",
+        "activate_with":"electrum",
+        "electrum": ["http://eth1.cipig.net:8555",
+                     "http://eth2.cipig.net:8555",
+                     "http://eth3.cipig.net:8555"],
+        "contract": "0x8500AFc0bc5214728082163326C2FF0C73f4a871"
+    },
+    {
+        "tag": "SOLVE",
+        "min_swap": 0.5,
+        "api-id": "solve-care",
+        "activate_with":"electrum",
+        "electrum": ["http://eth1.cipig.net:8555",
+                     "http://eth2.cipig.net:8555",
+                     "http://eth3.cipig.net:8555"],
+        "contract": "0x8500AFc0bc5214728082163326C2FF0C73f4a871"
+    },
+    {
+        "tag": "GNT",
+        "min_swap": 0.5,
+        "api-id": "golem",
+        "activate_with":"electrum",
+        "electrum": ["http://eth1.cipig.net:8555",
+                     "http://eth2.cipig.net:8555",
+                     "http://eth3.cipig.net:8555"],
+        "contract": "0x8500AFc0bc5214728082163326C2FF0C73f4a871"
+    },
+    {
+        "tag": "THETA",
+        "min_swap": 0.5,
+        "api-id": "theta-token",
+        "activate_with":"electrum",
+        "electrum": ["http://eth1.cipig.net:8555",
+                     "http://eth2.cipig.net:8555",
+                     "http://eth3.cipig.net:8555"],
+        "contract": "0x8500AFc0bc5214728082163326C2FF0C73f4a871"
+    },
+    {
+        "tag": "ATOM",
+        "min_swap": 0.5,
+        "api-id": "cosmos",
+        "activate_with":"electrum",
+        "electrum": ["http://eth1.cipig.net:8555",
+                     "http://eth2.cipig.net:8555",
+                     "http://eth3.cipig.net:8555"],
+        "contract": "0x8500AFc0bc5214728082163326C2FF0C73f4a871"
+}]
   
 ignored_coins = [
     {
