@@ -9,6 +9,8 @@ from bitcoin.wallet import P2PKHBitcoinAddress
 from kmdlib import *
 
 
+
+
 class CoinParams(CoreMainParams):
     MESSAGE_START = b'\x24\xe9\x27\x64'
     DEFAULT_PORT = 7770
@@ -138,15 +140,16 @@ def split_funds(coin, target=80):
 def consolidate(coin, tx_max=120):
     if coin not in ['BTC', 'EMC2', 'GAME', 'GIN']:
         tx_count = int(rpc[coin].getwalletinfo()['txcount'])
-        tx_cats = []
-        tx_list = rpc[coin].listtransactions("",tx_count)
-        for tx in tx_list:
-            tx_cats.append(tx['category'])
+        #tx_cats = []
+        #tx_list = rpc[coin].listtransactions("",tx_count)
+        #for tx in tx_list:
+            #tx_cats.append(tx['category'])
         if coin == 'KMD':
             tx_max = tx_max*2
         if tx_count > tx_max:
-            if 'immature' not in tx_cats:
-                rpc[coin].cleanwallettransactions()
+            rpc[coin].cleanwallettransactions()
+            tx_count = int(rpc[coin].getwalletinfo()['txcount'])
+        if tx_count > tx_max:
             try:
                 bal = float(rpc[coin].getbalance())
                 if bal > 0:
