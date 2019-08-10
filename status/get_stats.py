@@ -132,4 +132,4 @@ try:
         print("Create one at http://oracle.earth")
         print("Then add the txid to ~/DragonhoundTools/config/config.json")
 except Exception as e:
-    print("ORACLEARTH not running, it can be launched from ~/DragonhoundTools/cc/launch_oe.sh")
+    print("ORACLEARTH not running, it can be launched from ~/DragonhoundTools/launch/launch_oe.sh")

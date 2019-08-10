@@ -4,11 +4,15 @@ import sys
 import subprocess
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'shared'))
 from kmdlib import *
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'cclibs'))
+from oracleslib import *
 
+oracle_txid = '15d8de2ab39639010ae4373351ff50192311943b1817bbb53873ff64d7964aa0'
 rpc['TEST1'] = def_creds('TEST1')
 notary_counts = {}
 ntx_blocks = 0
 blockheight = rpc['TEST1'].getblockcount()
+start_at = blockheight - 1440
 for x in range(4000, blockheight):
 	resp = rpc['TEST1'].getNotarisationsForBlock(x)
 	for chain in resp['LABS']:
@@ -25,4 +29,4 @@ print("Total notarised blocks: "+str(ntx_blocks))
 for notary in sorted(notary_counts.keys()):
 	print(str(notary)+": "+str(notary_counts[notary]))
 
-
+write2oracle('ORACLEARTH', oracle_txid, str(notary_counts))
