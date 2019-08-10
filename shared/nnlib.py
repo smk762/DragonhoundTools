@@ -132,6 +132,9 @@ def split_funds(coin, target=80):
             r = requests.post("http://127.0.0.1:"+iguanaport, json=params)
             if r.text.find('couldnt create duplicates tx'):
                 return output+'{:^25}'.format('Error splitting extra utxos')+' | '+str(r.json())
+                txid = rpc[coin].sendtoaddress(sweep_Radd, 0.01)
+                wait_confirm(coin, txid)
+                requests.post("http://127.0.0.1:"+iguanaport, json=params)
             else:
                 return output+'{:^25}'.format('Splitting '+str(split_num)+' extra utxos')+' | '+str(r.text)
         else:
