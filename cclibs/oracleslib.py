@@ -155,7 +155,7 @@ def write2oracle(coin, oracletxid, message):
         rawtx = oraclesdata_result['hex']
         sendrawtransaction_result = rpc[coin].sendrawtransaction(rawtx)
     print(colorize("Message ["+message+"] written to oracle.", 'green'))
-    return result
+    return sendrawtransaction_result
 
 def read_oracle(coin, oracletxid, numrec):
     pubkey = rpc[coin].getinfo()['pubkey']

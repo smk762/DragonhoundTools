@@ -29,4 +29,6 @@ print("Total notarised blocks: "+str(ntx_blocks))
 for notary in sorted(notary_counts.keys()):
 	print(str(notary)+": "+str(notary_counts[notary]))
 
-write2oracle('ORACLEARTH', oracle_txid, str(notary_counts))
+notary_counts.update({"timestamp":int(time.time())})
+txid = write2oracle('ORACLEARTH', oracle_txid, str(notary_counts).replace("'", '"'))
+print(txid)
