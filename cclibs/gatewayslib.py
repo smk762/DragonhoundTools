@@ -78,3 +78,11 @@ def withdraw_gateway(coin, bind_txid, coinname, withdrawpub, amount):
     txid = rpc[coin].sendrawtransaction(resp['hex'])
     return txid
     
+def claim_gateway(bind_txid, coin, gateways_deposit_txid,
+                  destination_pubkey, amount):
+    resp = pegsRPC.gatewaysclaim(bind_txid, coin,
+                                 gateways_deposit_txid, 
+                                 destination_pubkey, amount)
+    txid = pegsRPC.sendrawtransaction(resp['hex'])
+    return txid
+
