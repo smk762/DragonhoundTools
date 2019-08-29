@@ -15,7 +15,7 @@ from os.path import expanduser
 cwd = os.getcwd()
 home = expanduser("~")
 
-with open(home+"/DragonhoundTools/launch/launch_params.json") as launch_j:
+with open(home+"/DragonhoundTools/config/launch_params.json") as launch_j:
     launch_json = json.load(launch_j)
 
 try:
