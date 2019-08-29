@@ -5,6 +5,7 @@ import csv
 import json
 import time
 import shutil
+import fileinput
 import requests
 import itertools
 import subprocess
@@ -44,12 +45,12 @@ qa_path = home+"/qa"
 if not os.path.exists(qa_path):
     os.mkdir(qa_path)
 
-def launch_chain(chain, paramlist, kmd_path, pubkey=''):
+def launch_chain(chain, paramlist, kmd_path, pubkey='', wif=''):
     if pubkey != '':
         paramlist.append("-pubkey="+pubkey)
-    rpc[chain] = def_creds(chain)
     try:
-        blocks = int(rpc[chain].getinfo()['blocks'])
+        if chain not in rpc:        
+            rpc[chain] = def_creds(chain)
         rpc[chain].stop()
         print("Stopping "+chain)
         time.sleep(60)
@@ -58,28 +59,83 @@ def launch_chain(chain, paramlist, kmd_path, pubkey=''):
     commit = get_commit_hash(kmd_path)
     test_log = chain+"_"+commit+".log"
     test_output = open(test_log,'w+')
-    print(paramlist)
     subprocess.Popen([kmd_path+"/komodod"]+paramlist, stdout=test_output, stderr=test_output, universal_newlines=True)
     loop = 0
-    try:
-        blocks = int(rpc[chain].getinfo()['blocks'])
-    except:
-        blocks = 0
-        pass
-    while blocks == 0:
-        time.sleep(20)
+    started = 0
+    print("Launching "+chain+" daemon")
+    print(chain+" Pubkey: "+pubkey)
+    while started == 0:
+        time.sleep(30)
+        print("Waiting for "+chain+" to start")
         loop += 1
         try:
-            blocks = int(rpc[chain].getinfo()['blocks'])
+            if chain not in rpc:        
+                rpc[chain] = def_creds(chain)
+            chain_info = rpc[chain].getinfo()
+            started = 1
+            if wif != '':
+                print("Importing private key for "+chain)
+                rpc[chain].importprivkey(wif)
         except:
-            blocks = 0
+            started = 0
             pass
-        if loop > 20:
-            print("Something went wrong. Chain probably already running.")
+        if loop > 10:
+            print("Something went wrong. Check "+test_log)
             break
     print(" Use tail -f "+kmd_path+"/"+test_log+" for "+chain+" console messages")
 
-
+def spawn_2chainz(chain, paramlist, kmd_path, pub1='', wif1='', pub2='', wif2=''):
+    secondary_params = paramlist[:]
+    launch_chain(chain, paramlist, kmd_path, pub1, wif1)
+    primary_conf = home+'/.komodo/'+chain+"/"+chain+".conf"
+    conf_lines = []
+    with open(primary_conf, 'r') as f:
+        for line in f:
+            l = line.rstrip()
+            if re.search('rpcuser', l):
+                rpcuser = l.replace('rpcuser=', '')
+                conf_lines.append(l+'_secondary')
+            elif re.search('rpcpassword', l):
+                rpcpassword = l.replace('rpcpassword=', '')
+                conf_lines.append(l+'_secondary')
+            elif re.search('rpcport', l):
+                rpcport = int(l.replace('rpcport=', ''))
+                conf_lines.append('rpcport='+str(rpcport+7))
+            else:
+                conf_lines.append(l)
+        rpc[chain]=Proxy("http://%s:%s@127.0.0.1:%d"%(rpcuser, rpcpassword, int(rpcport)))
+    f.close()
+    secondary_datadir = home+'/.komodo2/'+chain
+    if not os.path.exists(home+'/.komodo2'):
+        os.mkdir(home+'/.komodo2')
+    if not os.path.exists(secondary_datadir):
+        os.mkdir(secondary_datadir)
+    secondary_conf = home+'/.komodo2/'+chain+"/"+chain+".conf"
+    rpcport2 = rpcport+7
+    p2pport2 = rpcport+6
+    conf_lines.append("port="+str(p2pport2))
+    with open(secondary_conf, 'w+') as f2:
+        for line in conf_lines:
+            f2.write(line+"\r\n")
+    f2.close() 
+    rpc[chain+"_2"]=Proxy("http://%s:%s@127.0.0.1:%d"%(rpcuser+'_secondary', rpcpassword+'_secondary', int(rpcport2)))
+    # read primary conf file, update rpcuser/pass and port
+    secondary_params.append('-datadir='+secondary_datadir)
+    secondary_params.append('-addnode=localhost')
+    launch_chain(chain+"_2", secondary_params, kmd_path, pub2, wif2)
+    # create addresses, set pubkeys, start mining.
+    rpc[chain].setgenerate(True, 1)
+    height = rpc[chain].getblockcount()
+    while height < 6:
+        height = rpc[chain].getblockcount()
+        print("Premining first 10 blocks... ("+str(height)+"/10)")
+        time.sleep(20)
+    balance = rpc[chain].getbalance()
+    balance2 = rpc[chain+"_2"].getbalance()
+    print("Premine complete!")
+    print("Primary balance: "+str(balance))
+    print("Secondary balance: "+str(balance2))
+    return rpc[chain], rpc[chain+"_2"]
 
 def build_commit(app, branch=False, commit=False):
     repo_url = CI_app_list[app]['repo']

@@ -39,11 +39,10 @@ def token_balance(coin, pubkey=None):
 def token_create(coin, tokenname, tokensupply, tokendesc):
     result = rpc[coin].tokencreate(str(tokenname), str(tokensupply), str(tokendesc))
     if 'hex' in result.keys():
-        tokentxid = rpc[coin].sendrawtransaction(result['hex'])
-        print(colorize("Tokentxid ["+str(tokentxid)+"] created", 'green'))
-        return tokentxid
+        token_txid = rpc[coin].sendrawtransaction(result['hex'])
+        return token_txid
     else:
-        print(colorize("Tokentxid creation failed: ["+str(result)+"]", 'red'))
+        print(colorize("Token_txid creation failed: ["+str(result)+"]", 'red'))
         exit(1)
 
 def token_info(coin, tokenid):
@@ -60,16 +59,16 @@ def token_transfer(coin, tokenid, dest_pubkey, amount):
     bid_txid = rpc[coin].sendrawtransaction(rawhex['hex'])
     return bid_txid
 
-def print_tokenbalance(coin, tokentxid, pubkey=""):
+def print_tokenbalance(coin, token_txid, pubkey=""):
     if len(pubkey) == 66:
-        result = rpc[coin].tokenbalance(str(tokentxid), str(pbkey))
+        result = rpc[coin].tokenbalance(str(token_txid), str(pbkey))
     else:
-        result = rpc[coin].tokenbalance(str(tokentxid))
+        result = rpc[coin].tokenbalance(str(token_txid))
     if 'result' in result.keys():
         if result['result'] == 'success':
             tokenaddress = result['CCaddress']
             balance = result['balance']
-            print(colorize("Tokentxid ["+str(tokentxid)+"] address ["+str(tokenaddress)+"] has ["+str(balance)+"] balance", 'green'))
+            print(colorize("token_txid ["+str(token_txid)+"] address ["+str(tokenaddress)+"] has ["+str(balance)+"] balance", 'green'))
         else:
             print(colorize("Getting token balance failed: ["+str(result)+"]", 'red'))
             exit(1)

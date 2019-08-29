@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import os
 import sys
+import subprocess
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'shared'))
 from kmdlib import *
 
@@ -15,19 +16,15 @@ def create_oracle(coin, oracle_name, oracle_description, oracletype, datafee=100
         oracleHex=result['hex']
         oracleResult=result['result']
     oracle_txid = rpc[coin].sendrawtransaction(oracleHex)
-    memPool = str(rpc[coin].getrawmempool())
-    while memPool.find(oracle_txid) < 0:
-        time.sleep(15)
-        memPool = str(rpc[coin].getrawmempool())
-    print("Oracle created. TXID: "+oracle_txid)
+    wait_confirm(coin, oracle_txid)
     oraclesList = str(rpc[coin].oracleslist())
     loop = 0
     while oraclesList.find(oracle_txid) < 0:
         loop += 1
-        time.sleep(15)
+        time.sleep(30)
         oraclesList = str(rpc[coin].oracleslist())
-        print("Waiting for oracle to list, "+str(15*loop)+" sec")
-        if loop > 20:
+        print("Waiting for oracle to list, "+str(30*loop)+" sec")
+        if loop > 30:
             print("Oracle didnt list, exiting.")
             sys.exit(0)
     print("Oracle Listing confirmed")
@@ -63,7 +60,9 @@ def create_oracle(coin, oracle_name, oracle_description, oracletype, datafee=100
     for i in range (0,10):
         result = rpc[coin].oraclessubscribe(oracle_txid, publisher, str(amount))
         orcl_hex = result['hex']
-        rpc[coin].sendrawtransaction(orcl_hex)
+        sub_txid = rpc[coin].sendrawtransaction(orcl_hex)
+        time.sleep(1)
+    wait_confirm(coin, sub_txid)
     return oracle_txid
 
 def register_oracle(coin, oracletxid, datafee):
@@ -204,3 +203,12 @@ def add_oracleFunds(coin, oracletxid, pubkey):
             orcl_hex = result['hex']
             rpc[coin].sendrawtransaction(orcl_hex)
 
+def spawn_oraclefeed(dest_chain, komodod_path, oracle_txid, pubkey, bind_txid):
+    oraclefeed_build_log = str(dest_chain)+"_oraclefeed_build.log"
+    oraclefeed_build = open(oraclefeed_build_log,'w+')
+    subprocess.Popen(["gcc", komodod_path+"/cc/dapps/oraclefeed.c", "-lm", "-o", "oraclefeed"], stdout=oraclefeed_build, stderr=oraclefeed_build, universal_newlines=True)
+    oraclefeed_log = str(dest_chain)+"_oraclefeed.log"
+    oraclefeed_output = open(oraclefeed_log,'w+')
+    subprocess.Popen([komodod_path+"/oraclefeed", dest_chain, oracle_txid, pubkey, "Ihh", bind_txid, komodod_path+"/komodo-cli"], stdout=oraclefeed_output, stderr=oraclefeed_output, universal_newlines=True)
+    print(" Use tail -f "+komodod_path+"/"+oraclefeed_build_log+" for oraclefeed build console messages")
+    print(" Use tail -f "+komodod_path+"/"+oraclefeed_log+" for oraclefeed log console messages")

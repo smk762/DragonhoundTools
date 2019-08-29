@@ -14,6 +14,10 @@ from os.path import expanduser
 # Get and set config
 cwd = os.getcwd()
 home = expanduser("~")
+
+with open(home+"/DragonhoundTools/launch/launch_params.json") as launch_j:
+    launch_json = json.load(launch_j)
+
 try:
     with open(home+"/DragonhoundTools/config/config.json") as j:
         config_json = json.load(j)
@@ -139,9 +143,12 @@ def importprivkey_since(coin, blocks_back):
 
 def wait_confirm(coin, txid):
     start_time = time.time()
-    while txid in rpc[coin].getrawmempool():
-        print("Waiting for confirmation...")
-        time.sleep(15)
+    mempool = rpc[coin].getrawmempool()
+    while txid in mempool:
+        print("Waiting for "+txid+" confirmation...")
+        time.sleep(60)
+        mempool = rpc[coin].getrawmempool()
+        #print(mempool)
         looptime = time.time() - start_time
         if looptime > 900:
             print("Transaction timed out")
@@ -149,24 +156,32 @@ def wait_confirm(coin, txid):
     print("Transaction "+txid+" confirmed!")
     return True
 
+def wait_notarised(coin, txid):
+    start_time = time.time()
+    status = rpc[coin].gettransaction(txid)['confirmations']
+    while status != 1:
+        looptime = time.time() - start_time
+        print("Waiting for notarisation..."+str(looptime)+" sec")
+        time.sleep(30)
+        status = rpc[coin].gettransaction(txid)['confirmations']
+    print("Transaction "+txid+" notarisated!")
+    return True
+
 def send_confirm_rawtx(coin, hexstring):
     start_time = time.time()
     txid = rpc[coin].sendrawtransaction(hexstring)
-    print(hexstring)
-    print(txid)
     while len(txid) != 64:
         print("Sending raw transaction...")
         txid = rpc[coin].sendrawtransaction(hexstring)
-        print(txid)
-        time.sleep(20)
+        time.sleep(30)
         looptime = time.time() - start_time
         if looptime > 900:
             print("Transaction timed out")
             print(txid)
             exit(1)
     while txid in rpc[coin].getrawmempool():
-        print("Waiting for confirmation...")
-        time.sleep(20)
+        print("Waiting for confirmation, "+str(looptime)+" sec")
+        time.sleep(30)
         looptime = time.time() - start_time
         if looptime > 900:
             print("Transaction timed out")

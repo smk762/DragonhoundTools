@@ -1,0 +1,55 @@
+{
+	"KMD": {"params":[],
+			"repo":"https://github.com/jl777/komodo",
+			"branch": "beta"
+	},
+	"ROGUE": {"params":["-ac_name=ROGUE", "-ac_supply=1000000", 
+					  "-addnode=5.9.102.210 ", "-ac_cclib=rogue", "-ac_perc=10000000",
+					  "-ac_reward=100000000", "-ac_cc=60001", "-daemon",
+					  "-ac_script=2ea22c80203d1579313abe7d8ea85f48c65ea66fc512c878c0d0e6f6d54036669de940febf8103120c008203000401cc"
+			],
+			"repo":"https://github.com/jl777/komodo",
+			"branch": "jl777"
+
+	},
+	"TEST1": {"params":["-ac_name=TEST1", "-ac_supply=5000", "-ac_reward=800000000",
+			  			"-ac_sapling=1,", "-addnode=145.32.241.0", 
+			  			"-addnode=149.28.243.60", "-addnode=95.179.186.132",
+			  			"-addnode=136.244.112.57", "-addnode=45.63.30.181"
+			  ],
+			  "repo":"https://github.com/KMDLabs/komodo",
+			  "branch": "nn_testnet"
+	},
+	"KUSDTEST": {"params":["-ac_supply=1000000", "-ac_reward=10000",
+						 "-ac_name=KUSDTEST", "-ac_cc=2", "-ac_import=PEGSCC", 
+						 "-ac_end=1", "-ac_perc=0", "-ac_cbopret=7",
+						 "-earlytxid=a130861d422655cb28ffbf788c3b4a07748ba67eb7c413c9440b7cbbfcb9d296", 
+						 "-addnode=116.203.17.140:22993", "-addnode=116.203.17.141:22993"
+				],
+		 		"repo":"https://github.com/Mixa84/komodo",
+				"branch": "pegsCC"
+	},
+	"MUSIG": {"params":["-ac_name=MUSIG", "-ac_supply=100000", "-ac_reward=10000000",
+			  			"-ac_cclib=sudoku", "-ac_cc=2", "-addnode=5.9.102.210"
+			 ],
+			 "repo":"https://github.com/jl777/komodo",
+			 "branch": "jl777"
+	},
+	"BETS0": {"params":["-ac_name=BETS0", "-ac_cbopret=7", "-ac_cc=10777", "-addnode=159.69.45.70", 
+						"-ac_reward=10000", "-ac_supply=156177", "-ac_blocktime=300",  "-daemon",
+						"-ac_snapshot=288", "-ac_sapling=1", "-ac_earlytxidcontract=237",
+						"-ac_prices='ETH, LTC, BNB, NEO, LRC, QTUM, OMG, ZRX, STRAT, IOTA, XVG, KMD, EOS, ZEC, DASH, XRP, STORJ, XMR, BAT, BTS, LSK, ADA, WAVES, STEEM, RVN, DCR, XEM, ICX, HOT, ENJ",
+						"-ac_stocks='AAPL,ADBE,ADSK,AKAM,AMD,AMZN,ATVI,BB,CDW,CRM,CSCO,CYBR,DBX,EA,FB,GDDY,GOOG,GRMN,GSAT,HPQ,IBM,INFY,INTC,INTU,JNPR,MSFT,MSI,MU,MXL,NATI,NCR,NFLX,NTAP,NVDA,ORCL,PANW,PYPL,QCOM,RHT,S,SHOP,SNAP,SPOT,SYMC,SYNA,T,TRIP,TWTR,TXN,VMW,VOD,VRSN,VZ,WDC,XRX,YELP,YNDX,ZEN,BRK.A'",
+						"-earlytxid=d0de610ad271e0ef966d006a1c6cde67780bb40118f3efdec9bf07e86081e184'"
+			],
+	 		"repo":"https://github.com/dimxy/komodo",
+			"branch": "prices-rpc"
+
+	},
+	"TETRIS": {"params":["-ac_name=GTEST", "-ac_cclib=gamescc", "-ac_supply=1000000",
+					  "-addnode=5.9.102.210 ", "-ac_reward=100000000", "-ac_cc=2"
+			],
+			"repo":"https://github.com/jl777/komodo",
+			"branch": "jl777"
+	}
+}
