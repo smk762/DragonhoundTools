@@ -7,7 +7,7 @@ from kmdlib import *
 
 # DOCS: https://developers.komodoplatform.com/basic-docs/antara/antara-api/oracles.html
 
-def create_oracle(coin, oracle_name, oracle_description, oracletype, datafee=100000):
+def create_oracle(coin, oracle_name, oracle_description, oracletype, datafee=0.001):
     result = rpc[coin].oraclescreate(str(oracle_name), str(oracle_description), oracletype)
     oracleHex=result['hex']
     oracleResult=result['result']
@@ -40,9 +40,11 @@ def create_oracle(coin, oracle_name, oracle_description, oracletype, datafee=100
     wait_confirm(coin, fund_txid)
     print("komodo-cli -ac_name="+coin+" oraclesregister "+oracle_txid+" "+str(datafee))
     rego = rpc[coin].oraclesregister(oracle_txid, str(datafee))
+    time.sleep(15)
     oracleHex=rego['hex']
     oracleResult=rego['result']
     while oracleResult != 'success':
+        time.sleep(15)
         rego = rpc[coin].oraclesregister(oracle_txid, str(datafee))
         oracleHex=rego['hex']
         oracleResult=rego['result']
@@ -57,15 +59,24 @@ def create_oracle(coin, oracle_name, oracle_description, oracletype, datafee=100
         reg_json=orcl_info['registered']
     publisher=str(orcl_info['registered'][0]['publisher'])
     amount = 10
+    sub_list = []
     for i in range (0,10):
+        print("Subscribing to oracle ("+str(i)+"/10)")
         result = rpc[coin].oraclessubscribe(oracle_txid, publisher, str(amount))
         orcl_hex = result['hex']
         sub_txid = rpc[coin].sendrawtransaction(orcl_hex)
-        time.sleep(1)
-    wait_confirm(coin, sub_txid)
+        time.sleep(5)
+        sub_list.append(sub_txid)
+    pending_subs = len(rpc[coin].getrawmempool())
+    # Unconfirmed Subs may result in daemon crash.
+    # TODO: test this manually, and implement mempool check against list.
+    while pending_subs > 0:
+        print("Waiting for "+str(pending_subs)+" subscriptions to confirm")
+        time.sleep(30)
+        pending_subs = len(rpc[coin].getrawmempool())
     return oracle_txid
 
-def register_oracle(coin, oracletxid, datafee):
+def register_oracle(coin, oracletxid, datafee=0.001):
     datafee=str(datafee)
     pubkey = rpc[coin].getinfo()['pubkey']
     rego = rpc[coin].oraclesregister(oracletxid, datafee)

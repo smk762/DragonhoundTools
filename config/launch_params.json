@@ -52,8 +52,8 @@
 			"repo":"https://github.com/jl777/komodo",
 			"branch": "jl777"
 	},
-	"PEGSTEST": {"params":["-ac_name=PEGTEST", "-ac_supply=5000", "-ac_reward=800000000",
-                        "-ac_sapling=1", "-addnode=116.203.120.163", 
+	"PEGSTEST": {"params":["-ac_name=PEGSTEST", "-ac_supply=5000", "-ac_reward=800000000",
+                        "-ac_sapling=1", "-addnode=116.203.120.163", "-ac_snapshot=1440",
                         "-addnode=116.203.120.91", "-ac_cc=2", "-ac_import=PEGSCC",
                          "-ac_end=1", "-ac_perc=0", "-ac_cbopret=7 -debug=gatewayscc-2"
             ],

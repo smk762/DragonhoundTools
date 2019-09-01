@@ -59,10 +59,12 @@ def launch_chain(chain, paramlist, kmd_path, pubkey='', wif=''):
     commit = get_commit_hash(kmd_path)
     test_log = chain+"_"+commit+".log"
     test_output = open(test_log,'w+')
+    print("Launching "+str(' '.join([kmd_path+"/komodod"]+paramlist))+" daemon")
     subprocess.Popen([kmd_path+"/komodod"]+paramlist, stdout=test_output, stderr=test_output, universal_newlines=True)
+    print(" Use tail -f "+kmd_path+"/"+test_log+" for "+chain+" console messages")
     loop = 0
     started = 0
-    print("Launching "+chain+" daemon")
+    
     print(chain+" Pubkey: "+pubkey)
     while started == 0:
         time.sleep(30)
@@ -82,7 +84,6 @@ def launch_chain(chain, paramlist, kmd_path, pubkey='', wif=''):
         if loop > 10:
             print("Something went wrong. Check "+test_log)
             break
-    print(" Use tail -f "+kmd_path+"/"+test_log+" for "+chain+" console messages")
 
 def spawn_2chainz(chain, paramlist, kmd_path, pub1='', wif1='', pub2='', wif2=''):
     secondary_params = paramlist[:]
@@ -259,3 +260,51 @@ def upload_csv(file):
     files = {'file': open(file, 'rb')}
     r = requests.post(url, files=files)
     print(file+" uploaded to http://oracle.earth/qa_reports/")
+
+def print_oraclesinfo(coin, txid):
+    try:
+        info = rpc[coin].oraclesinfo(txid)
+        print(colorize("Oracle TXID                ["+str(txid)+"]", 'green'))
+        print(colorize("Oracle Name                ["+str(info['name'])+"]", 'green'))
+        print(colorize("Oracle Description         ["+str(info['description'])+"]", 'green'))
+        print(colorize("Oracle Publisher           ["+str(info['registered'][0]['publisher'])+"]", 'green'))
+        print(colorize("Oracle Funds               ["+str(info['registered'][0]['funds'])+"]", 'green'))
+    except:
+        print(info)
+        pass
+
+
+def print_tokeninfo(coin, txid):
+    try:
+        info = rpc[coin].tokeninfo(txid)
+        print(colorize("Token TXID                 ["+str(txid)+"]", 'green'))
+        print(colorize("Token owner pubkey         ["+str(info['owner'])+"]", 'green'))
+        print(colorize("Token Name                 ["+str(info['name'])+"]", 'green'))
+        print(colorize("Token Supply               ["+str(info['supply'])+"]", 'green'))
+        print(colorize("Token Description          ["+str(info['description'])+"]", 'green'))
+    except:
+        print(info)
+        pass
+
+def print_gatewaysinfo(coin, txid):
+    try:    
+        info = rpc[coin].gatewaysinfo(txid)
+        print(colorize("Gateways Bind TXID         ["+str(txid)+"]", 'green'))
+        print(colorize("Gateways Oracle TXID       ["+str(info['oracletxid'])+"]", 'green'))
+        print(colorize("Gateways Token TXID        ["+str(info['tokenid'])+"]", 'green'))
+        print(colorize("Gateways Coin              ["+str(info['coin'])+"]", 'green'))
+        print(colorize("Gateways Pubkeys           ["+str(info['pubkeys'])+"]", 'green'))
+        print(colorize("Gateways Deposit Address   ["+str(info['deposit'])+"]", 'green'))
+        print(colorize("Gateways Total Supply      ["+str(info['totalsupply'])+"]", 'green'))
+        print(colorize("Gateways Remaining Supply  ["+str(info['remaining'])+"]", 'green'))
+        print(colorize("Gateways Issued Supply     ["+str(info['issued'])+"]", 'green'))
+    except:
+        print(info)
+        pass
+
+def print_pegsinfo(coin, txid):
+    try:    
+        info = rpc[coin].pegsinfo(txid)
+    except:
+        print(info)
+        pass

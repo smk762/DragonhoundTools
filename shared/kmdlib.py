@@ -15,9 +15,31 @@ from os.path import expanduser
 cwd = os.getcwd()
 home = expanduser("~")
 
-with open(home+"/DragonhoundTools/config/launch_params.json") as launch_j:
-    launch_json = json.load(launch_j)
+addr_config = home+"/DragonhoundTools/config/test_addr.json"
+launch_config = home+"/DragonhoundTools/config/launch_params.json"
 
+# Get Address configs
+try:
+    with open(addr_config) as addr_j:
+        addr_json = json.load(addr_j)
+except:
+    print("No test_addr.json file!")
+    print("Create one using the template:")
+    print("cp "+home+"/DragonhoundTools/config/test_addr_example.json "+home+"/DragonhoundTools/config/test_addr.json")
+    print("nano "+home+"/DragonhoundTools/config/test_addr.json")
+    sys.exit(0)
+
+# Get launch param configs
+try:
+    with open(launch_config) as launch_j:
+        launch_json = json.load(launch_j)
+except:
+    print("No launch_params.json file!")
+    print("Create one using the template:")
+    print("cp "+home+"/DragonhoundTools/config/launch_params_example.json "+home+"/DragonhoundTools/config/launch_params.json")
+    print("nano "+home+"/DragonhoundTools/config/launch_params.json")
+    sys.exit(0)
+    
 try:
     with open(home+"/DragonhoundTools/config/config.json") as j:
         config_json = json.load(j)
@@ -180,9 +202,9 @@ def send_confirm_rawtx(coin, hexstring):
             print(txid)
             exit(1)
     while txid in rpc[coin].getrawmempool():
+        looptime = time.time() - start_time
         print("Waiting for confirmation, "+str(looptime)+" sec")
         time.sleep(30)
-        looptime = time.time() - start_time
         if looptime > 900:
             print("Transaction timed out")
             print(rpc[coin].getrawmempool())
@@ -304,3 +326,24 @@ try:
 except Exception as e:
     print("RPCs Error: "+str(e))
     pass
+
+
+def z_sendmany_twoaddresses(coin, src_addr, recepient1, amount1, recepient2, amount2):
+    str_sending_block = "[{{\"address\":\"{}\",\"amount\":{}}},{{\"address\":\"{}\",\"amount\":{}}}]".format(recepient1, amount1, recepient2, amount2)
+    sending_block = json.loads(str_sending_block)
+    opid = rpc[coin].z_sendmany(src_addr,sending_block)
+    return opid
+
+
+def opid_to_txid(coin, opid):
+    str_sending_block = "[\"{}\"]".format(opid)
+    sending_block = json.loads(str_sending_block)
+    opid_json = rpc[coin].z_getoperationstatus(sending_block)
+    opid_dump = json.dumps(opid_json)
+    opid_dict = json.loads(opid_dump)[0]
+    try:
+        txid = opid_dict['result']['txid']
+    except Exception as e:
+        print(e)
+        print(opid_dict)
+    return txid
