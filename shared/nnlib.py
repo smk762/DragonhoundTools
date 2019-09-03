@@ -131,10 +131,15 @@ def split_funds(coin, target=80):
                       'satoshis': utxosize, 'sendflag': 1 }
             r = requests.post("http://127.0.0.1:"+iguanaport, json=params)
             if r.text.find('couldnt create duplicates tx'):
+                try:
+                    txid = rpc[coin].sendtoaddress(nn_Radd, rpc[coin].getbalance(), "", "", True)
+                    wait_confirm(coin, txid)
+                    rpc[coin].cleanwallettransactions(txid)
+                    requests.post("http://127.0.0.1:"+iguanaport, json=params)
+                except Exception as e:
+                    print(e)
+                    pass
                 return output+'{:^25}'.format('Error splitting extra utxos')+' | '+str(r.json())
-                txid = rpc[coin].sendtoaddress(sweep_Radd, 0.01)
-                wait_confirm(coin, txid)
-                requests.post("http://127.0.0.1:"+iguanaport, json=params)
             else:
                 return output+'{:^25}'.format('Splitting '+str(split_num)+' extra utxos')+' | '+str(r.text)
         else:

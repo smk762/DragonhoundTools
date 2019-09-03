@@ -14,32 +14,6 @@ from os.path import expanduser
 # Get and set config
 cwd = os.getcwd()
 home = expanduser("~")
-
-addr_config = home+"/DragonhoundTools/config/test_addr.json"
-launch_config = home+"/DragonhoundTools/config/launch_params.json"
-
-# Get Address configs
-try:
-    with open(addr_config) as addr_j:
-        addr_json = json.load(addr_j)
-except:
-    print("No test_addr.json file!")
-    print("Create one using the template:")
-    print("cp "+home+"/DragonhoundTools/config/test_addr_example.json "+home+"/DragonhoundTools/config/test_addr.json")
-    print("nano "+home+"/DragonhoundTools/config/test_addr.json")
-    input("Press [Enter] to continue...")
-
-# Get launch param configs
-try:
-    with open(launch_config) as launch_j:
-        launch_json = json.load(launch_j)
-except:
-    print("No launch_params.json file!")
-    print("Create one using the template:")
-    print("cp "+home+"/DragonhoundTools/config/launch_params_example.json "+home+"/DragonhoundTools/config/launch_params.json")
-    print("nano "+home+"/DragonhoundTools/config/launch_params.json")
-    input("Press [Enter] to continue...")
-    
 try:
     with open(home+"/DragonhoundTools/config/config.json") as j:
         config_json = json.load(j)
@@ -48,7 +22,7 @@ except:
     print("Create one using the template:")
     print("cp "+home+"/DragonhoundTools/config/config_example.json "+home+"/DragonhoundTools/config/config.json")
     print("nano "+home+"/DragonhoundTools/config/config.json")
-    input("Press [Enter] to continue...")
+    sys.exit(0)
 
 try:
     this_node = config_json['this_node']
@@ -74,7 +48,7 @@ except Exception as e:
     print("config.json file needs an update!")
     print(e)
     print("nano "+home+"/DragonhoundTools/config/config.json")
-    input("Press [Enter] to continue...")
+    sys.exit(0)
 sweep_Radd = config_json['sweep_Radd']
 j.close()
 
@@ -165,46 +139,35 @@ def importprivkey_since(coin, blocks_back):
 
 def wait_confirm(coin, txid):
     start_time = time.time()
-    mempool = rpc[coin].getrawmempool()
-    while txid in mempool:
-        print("Waiting for "+txid+" confirmation...")
-        time.sleep(60)
-        mempool = rpc[coin].getrawmempool()
-        #print(mempool)
+    while txid in rpc[coin].getrawmempool():
+        print("Waiting for confirmation...")
+        time.sleep(15)
         looptime = time.time() - start_time
-        if looptime > 900:
+        if looptime > 120:
             print("Transaction timed out")
             return False
     print("Transaction "+txid+" confirmed!")
     return True
 
-def wait_notarised(coin, txid):
-    start_time = time.time()
-    status = rpc[coin].gettransaction(txid)['confirmations']
-    while status != 1:
-        looptime = time.time() - start_time
-        print("Waiting for notarisation..."+str(looptime)+" sec")
-        time.sleep(30)
-        status = rpc[coin].gettransaction(txid)['confirmations']
-    print("Transaction "+txid+" notarisated!")
-    return True
-
 def send_confirm_rawtx(coin, hexstring):
     start_time = time.time()
     txid = rpc[coin].sendrawtransaction(hexstring)
+    print(hexstring)
+    print(txid)
     while len(txid) != 64:
         print("Sending raw transaction...")
         txid = rpc[coin].sendrawtransaction(hexstring)
-        time.sleep(30)
+        print(txid)
+        time.sleep(20)
         looptime = time.time() - start_time
         if looptime > 900:
             print("Transaction timed out")
             print(txid)
             exit(1)
     while txid in rpc[coin].getrawmempool():
+        print("Waiting for confirmation...")
+        time.sleep(20)
         looptime = time.time() - start_time
-        print("Waiting for confirmation, "+str(looptime)+" sec")
-        time.sleep(30)
         if looptime > 900:
             print("Transaction timed out")
             print(rpc[coin].getrawmempool())
@@ -326,24 +289,3 @@ try:
 except Exception as e:
     print("RPCs Error: "+str(e))
     pass
-
-
-def z_sendmany_twoaddresses(coin, src_addr, recepient1, amount1, recepient2, amount2):
-    str_sending_block = "[{{\"address\":\"{}\",\"amount\":{}}},{{\"address\":\"{}\",\"amount\":{}}}]".format(recepient1, amount1, recepient2, amount2)
-    sending_block = json.loads(str_sending_block)
-    opid = rpc[coin].z_sendmany(src_addr,sending_block)
-    return opid
-
-
-def opid_to_txid(coin, opid):
-    str_sending_block = "[\"{}\"]".format(opid)
-    sending_block = json.loads(str_sending_block)
-    opid_json = rpc[coin].z_getoperationstatus(sending_block)
-    opid_dump = json.dumps(opid_json)
-    opid_dict = json.loads(opid_dump)[0]
-    try:
-        txid = opid_dict['result']['txid']
-    except Exception as e:
-        print(e)
-        print(opid_dict)
-    return txid
