@@ -27,7 +27,6 @@ except:
     print("Create one using the template:")
     print("cp "+home+"/DragonhoundTools/config/test_addr_example.json "+home+"/DragonhoundTools/config/test_addr.json")
     print("nano "+home+"/DragonhoundTools/config/test_addr.json")
-    input("Press [Enter] to continue...")
 
 # Get launch param configs
 try:
@@ -38,7 +37,6 @@ except:
     print("Create one using the template:")
     print("cp "+home+"/DragonhoundTools/config/launch_params_example.json "+home+"/DragonhoundTools/config/launch_params.json")
     print("nano "+home+"/DragonhoundTools/config/launch_params.json")
-    input("Press [Enter] to continue...")
     
 try:
     with open(home+"/DragonhoundTools/config/config.json") as j:
@@ -48,7 +46,6 @@ except:
     print("Create one using the template:")
     print("cp "+home+"/DragonhoundTools/config/config_example.json "+home+"/DragonhoundTools/config/config.json")
     print("nano "+home+"/DragonhoundTools/config/config.json")
-    input("Press [Enter] to continue...")
 
 try:
     this_node = config_json['this_node']
@@ -74,7 +71,6 @@ except Exception as e:
     print("config.json file needs an update!")
     print(e)
     print("nano "+home+"/DragonhoundTools/config/config.json")
-    input("Press [Enter] to continue...")
 sweep_Radd = config_json['sweep_Radd']
 j.close()
 
@@ -92,12 +88,23 @@ elif operating_system == 'Win64' or operating_system == 'Windows':
 
 
 def colorize(string, color):
-    colors = {
-        'blue': '\033[94m',
-        'magenta': '\033[95m',
-        'green': '\033[92m',
-        'red': '\033[91m'
-    }
+        colors = {
+                'black':'\033[30m',
+                'red':'\033[31m',
+                'green':'\033[32m',
+                'orange':'\033[33m',
+                'blue':'\033[34m',
+                'purple':'\033[35m',
+                'cyan':'\033[36m',
+                'lightgrey':'\033[37m',
+                'darkgrey':'\033[90m',
+                'lightred':'\033[91m',
+                'lightgreen':'\033[92m',
+                'yellow':'\033[93m',
+                'lightblue':'\033[94m',
+                'pink':'\033[95m',
+                'lightcyan':'\033[96m',
+        }
     if color not in colors:
         return string
     else:
@@ -167,15 +174,15 @@ def wait_confirm(coin, txid):
     start_time = time.time()
     mempool = rpc[coin].getrawmempool()
     while txid in mempool:
-        print("Waiting for "+txid+" confirmation...")
+        print(colorize("Waiting for "+txid+" confirmation...",'orange'))
         time.sleep(60)
         mempool = rpc[coin].getrawmempool()
         #print(mempool)
         looptime = time.time() - start_time
         if looptime > 900:
-            print("Transaction timed out")
+            print(colorize("Transaction timed out",'red'))
             return False
-    print("Transaction "+txid+" confirmed!")
+    print(colorize("Transaction "+txid+" confirmed!",'green'))
     return True
 
 def wait_notarised(coin, txid):
@@ -312,21 +319,15 @@ def display_time(seconds, granularity=1):
 
 # Set RPCs
 rpc = {}
+coinlist.append('ORACLEARTH')
 if this_node == 'primary':
     coinlist.append('BTC')
-try:
-    for coin in coinlist:
+for coin in coinlist:
+    try:
         rpc[coin] = def_creds(coin)
-except Exception as e:
-    print("RPCs Error: "+str(e))
-    pass
-
-try:
-    rpc['ORACLEARTH'] = def_creds('ORACLEARTH')
-except Exception as e:
-    print("RPCs Error: "+str(e))
-    pass
-
+    except Exception as e:
+        print("RPCs Error: "+str(e))
+        pass
 
 def z_sendmany_twoaddresses(coin, src_addr, recepient1, amount1, recepient2, amount2):
     str_sending_block = "[{{\"address\":\"{}\",\"amount\":{}}},{{\"address\":\"{}\",\"amount\":{}}}]".format(recepient1, amount1, recepient2, amount2)

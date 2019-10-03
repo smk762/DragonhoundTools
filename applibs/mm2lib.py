@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import os
 import sys
+from subprocess import Popen
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'qa'))
 from qalib import *
 
@@ -65,7 +66,7 @@ def help_mm2(node_ip, user_pass):
     return r
 
 ## MM2 management
-def start_mm2(logfile):
+def start_mm2(logfile='mm2.log'):
   mm2_output = open(logfile,'w+')
   Popen(["./mm2"], stdout=mm2_output, stderr=mm2_output, universal_newlines=True)
   print("Marketmaker 2 started. Use 'tail -f "+logfile+"' for mm2 console messages")

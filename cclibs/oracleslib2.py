@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 import os
 import sys
-import subprocess
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'shared'))
 from kmdlib import *
 
 # DOCS: https://developers.komodoplatform.com/basic-docs/antara/antara-api/oracles.html
 
-def create_oracle(coin, oracle_name, oracle_description, oracletype, datafee=0.001):
+def create_oracle(coin, oracle_name, oracle_description, oracletype, datafee=100000):
     result = rpc[coin].oraclescreate(str(oracle_name), str(oracle_description), oracletype)
     oracleHex=result['hex']
     oracleResult=result['result']
@@ -16,15 +15,19 @@ def create_oracle(coin, oracle_name, oracle_description, oracletype, datafee=0.0
         oracleHex=result['hex']
         oracleResult=result['result']
     oracle_txid = rpc[coin].sendrawtransaction(oracleHex)
-    wait_confirm(coin, oracle_txid)
+    memPool = str(rpc[coin].getrawmempool())
+    while memPool.find(oracle_txid) < 0:
+        time.sleep(15)
+        memPool = str(rpc[coin].getrawmempool())
+    print("Oracle created. TXID: "+oracle_txid)
     oraclesList = str(rpc[coin].oracleslist())
     loop = 0
     while oraclesList.find(oracle_txid) < 0:
         loop += 1
-        time.sleep(30)
+        time.sleep(15)
         oraclesList = str(rpc[coin].oracleslist())
-        print("Waiting for oracle to list, "+str(30*loop)+" sec")
-        if loop > 30:
+        print("Waiting for oracle to list, "+str(15*loop)+" sec")
+        if loop > 20:
             print("Oracle didnt list, exiting.")
             sys.exit(0)
     print("Oracle Listing confirmed")
@@ -40,11 +43,9 @@ def create_oracle(coin, oracle_name, oracle_description, oracletype, datafee=0.0
     wait_confirm(coin, fund_txid)
     print("komodo-cli -ac_name="+coin+" oraclesregister "+oracle_txid+" "+str(datafee))
     rego = rpc[coin].oraclesregister(oracle_txid, str(datafee))
-    time.sleep(15)
     oracleHex=rego['hex']
     oracleResult=rego['result']
     while oracleResult != 'success':
-        time.sleep(15)
         rego = rpc[coin].oraclesregister(oracle_txid, str(datafee))
         oracleHex=rego['hex']
         oracleResult=rego['result']
@@ -58,25 +59,15 @@ def create_oracle(coin, oracle_name, oracle_description, oracletype, datafee=0.0
         orcl_info = rpc[coin].oraclesinfo(oracle_txid)
         reg_json=orcl_info['registered']
     publisher=str(orcl_info['registered'][0]['publisher'])
-    amount = 100
-    sub_list = []
+    amount = 10
     for i in range (0,10):
-        print("Subscribing to oracle ("+str(i)+"/10)")
         result = rpc[coin].oraclessubscribe(oracle_txid, publisher, str(amount))
         orcl_hex = result['hex']
-        sub_txid = rpc[coin].sendrawtransaction(orcl_hex)
-        time.sleep(5)
-        sub_list.append(sub_txid)
-    pending_subs = len(rpc[coin].getrawmempool())
-    # Unconfirmed Subs may result in daemon crash.
-    # TODO: test this manually, and implement mempool check against list.
-    while pending_subs > 0:
-        print("Waiting for "+str(pending_subs)+" subscriptions to confirm")
-        time.sleep(30)
-        pending_subs = len(rpc[coin].getrawmempool())
+        txid = rpc[coin].sendrawtransaction(orcl_hex)
+    wait_confirm(coin, txid)
     return oracle_txid
 
-def register_oracle(coin, oracletxid, datafee=0.001):
+def register_oracle(coin, oracletxid, datafee):
     datafee=str(datafee)
     pubkey = rpc[coin].getinfo()['pubkey']
     rego = rpc[coin].oraclesregister(oracletxid, datafee)
@@ -173,10 +164,10 @@ def read_oracle(coin, oracletxid, numrec):
     reg_json=orcl_info['registered']
     for reg_pub in reg_json:
         if reg_pub['publisher'] == pubkey:
-            batonutxo=reg_pub['baton']
-    if 'baton' in locals():
-        samples = rpc[coin].oraclessamples(oracletxid, baton, str(numrec))
-        print(colorize("Oracle records retrieved.", 'green'))
+            batonutxo=reg_pub['batontxid']
+    if 'batonutxo' in locals():
+        samples = rpc[coin].oraclessamples(oracletxid, batonutxo, str(numrec))
+        print(colorize("ERROR: Oracle records retrieved.", 'red'))
         return samples['samples']
     else:
         print(colorize("ERROR: Oracle batonuto does not exist.", 'red'))
@@ -214,12 +205,13 @@ def add_oracleFunds(coin, oracletxid, pubkey):
             orcl_hex = result['hex']
             rpc[coin].sendrawtransaction(orcl_hex)
 
-def spawn_oraclefeed(dest_chain, komodod_path, oracle_txid, pubkey, bind_txid):
-    oraclefeed_build_log = str(dest_chain)+"_oraclefeed_build.log"
-    oraclefeed_build = open(oraclefeed_build_log,'w+')
-    subprocess.Popen(["gcc", komodod_path+"/cc/dapps/oraclefeed.c", "-lm", "-o", "oraclefeed"], stdout=oraclefeed_build, stderr=oraclefeed_build, universal_newlines=True)
-    oraclefeed_log = str(dest_chain)+"_oraclefeed.log"
+def spawn_oraclefeed(coin, komodo_path, oracle_txid, bind_txid):
+    oraclefeed_log = cwd+"/oraclefeed.log"
     oraclefeed_output = open(oraclefeed_log,'w+')
-    subprocess.Popen([komodod_path+"/oraclefeed", dest_chain, oracle_txid, pubkey, "Ihh", bind_txid, komodod_path+"/komodo-cli"], stdout=oraclefeed_output, stderr=oraclefeed_output, universal_newlines=True)
-    print(" Use tail -f "+komodod_path+"/"+oraclefeed_build_log+" for oraclefeed build console messages")
-    print(" Use tail -f "+komodod_path+"/"+oraclefeed_log+" for oraclefeed log console messages")
+    os.chdir(komodo_path)
+    build_proc = subprocess.run(['gcc', 'cc/dapps/oraclefeed.c' '-lm' '-o' 'oraclefeed'], check=True, stdout=subprocess.PIPE, universal_newlines=True)
+    print(build_proc.stdout)
+    pubkey = rpc[coin].getinfo()['pubkey']
+    subprocess.Popen([komodo_path+'/oraclefeed', coin, oracle_txid, pubkey, 'Ihh', bind_txid], stdout=oraclefeed_output, stderr=oraclefeed_output, universal_newlines=True)
+    print("Build complete, oraclefeed started.")
+    print(" Use tail -f "+test_log+" for "+app+" console messages")
