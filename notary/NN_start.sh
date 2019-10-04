@@ -7,7 +7,6 @@ sleep 60
 cd ~/komodo/src
 ./komodod -notary -pubkey=$pubkey &
 sleep 600
-#./assetchains.old
+./assetchains.old
 #./assetchains
-./ac.old
 komodo-cli setgenerate true 1

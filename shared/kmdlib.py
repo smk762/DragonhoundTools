@@ -8,6 +8,7 @@ import time
 import codecs
 import requests
 import platform
+import subprocess
 from slickrpc import Proxy
 from os.path import expanduser
  
@@ -27,7 +28,7 @@ except:
     print("Create one using the template:")
     print("cp "+home+"/DragonhoundTools/config/test_addr_example.json "+home+"/DragonhoundTools/config/test_addr.json")
     print("nano "+home+"/DragonhoundTools/config/test_addr.json")
-    input("Press [Enter] to continue...")
+    time.sleep(7)
 
 # Get launch param configs
 try:
@@ -38,7 +39,7 @@ except:
     print("Create one using the template:")
     print("cp "+home+"/DragonhoundTools/config/launch_params_example.json "+home+"/DragonhoundTools/config/launch_params.json")
     print("nano "+home+"/DragonhoundTools/config/launch_params.json")
-    input("Press [Enter] to continue...")
+    time.sleep(7)
     
 try:
     with open(home+"/DragonhoundTools/config/config.json") as j:
@@ -48,7 +49,7 @@ except:
     print("Create one using the template:")
     print("cp "+home+"/DragonhoundTools/config/config_example.json "+home+"/DragonhoundTools/config/config.json")
     print("nano "+home+"/DragonhoundTools/config/config.json")
-    input("Press [Enter] to continue...")
+    time.sleep(7)
 
 try:
     this_node = config_json['this_node']
@@ -347,3 +348,35 @@ def opid_to_txid(coin, opid):
         print(e)
         print(opid_dict)
     return txid
+
+
+def format_param(param, value):
+    return '-' + param + '=' + value
+
+def ressurect_chain(coin):
+    with open(home+"/DragonhoundTools/config/config.json") as j:
+        config_json = json.load(j)
+    pubkey = config_json['pubkey']
+
+    with open(home+'/komodo/src/assetchains.json') as file:
+        assetchains = json.load(file)
+    for chain in assetchains:
+        if chain['ac_name'] == coin:
+            params = []
+            for param, value in chain.items():
+                if isinstance(value, list):
+                    for dupe_value in value:
+                        params.append(format_param(param, dupe_value))
+                else:
+                    params.append(format_param(param, value))
+            params.append("-pubkey="+pubkey)
+            print(' '.join(params))
+    try:
+        log = coin+"_STDOUT.log"
+        output = open(log,'w+')
+        print("Launching "+coin+" daemon")
+        subprocess.Popen([home+'/komodo/src/komodod']+params, stdout=output, stderr=output, universal_newlines=True)
+        print(" Use tail -f "+log+" for "+coin+" console messages")
+    except:
+        print(coin+" not in assetchains.json!")
+        pass

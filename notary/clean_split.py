@@ -11,14 +11,12 @@ mining = 0
 ignore = ['AXORACLE', 'ORACLEARTH', 'BTC', 'GAME', 'EMC', 'COQUICASH' ]
 for coin in coinlist:
   try:
-    if coin not in ignore:
-       cl = clean_wallet(coin)
-       #sw = sweep_funds(coin, 25)
+    sp = split_funds(coin, 80)
+    print(sp)
+    dif = rpc[coin].getblockchaininfo()['difficulty']
   except:
+    ressurect_chain(coin)
     pass
-  sp = split_funds(coin, 80)
-  print(sp)
-  dif = rpc[coin].getblockchaininfo()['difficulty']
 
 if coin not in ['BTC', 'EMC2', 'GIN', 'GAME', 'KMD']:
   if rpc[coin].getgenerate()['generate'] is True:
