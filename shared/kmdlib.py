@@ -88,7 +88,7 @@ elif operating_system == 'Win64' or operating_system == 'Windows':
 
 
 def colorize(string, color):
-        colors = {
+    colors = {
                 'black':'\033[30m',
                 'red':'\033[31m',
                 'green':'\033[32m',
