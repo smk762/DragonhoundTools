@@ -8,15 +8,17 @@ from nnlib import *
 # sweep_Radd set in config.json
 reserve = 5   # AMOUNT OF COINS TO KEEP IN WALLET
 mining = 0
-ignore = ['AXORACLE', 'ORACLEARTH', 'BTC', 'GAME', 'EMC', 'COQUICASH' ]
+ignore = ['AXORACLE', 'ORACLEARTH', 'BTC', 'GAME', 'EMC', 'COQUICASH', 'HUSH3', 'HUSH' ]
+coinlist.append('VRSC')
 for coin in coinlist:
-  try:
-    sp = split_funds(coin, 80)
-    print(sp)
-    dif = rpc[coin].getblockchaininfo()['difficulty']
-  except:
-    ressurect_chain(coin)
-    pass
+  if coin not in ignore:
+    try:
+      sp = split_funds(coin, 80)
+      print(sp)
+      dif = rpc[coin].getblockchaininfo()['difficulty']
+    except:
+      ressurect_chain(coin)
+      pass
 
 if coin not in ['BTC', 'EMC2', 'GIN', 'GAME', 'KMD']:
   if rpc[coin].getgenerate()['generate'] is True:

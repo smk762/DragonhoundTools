@@ -23,6 +23,10 @@ print(\
     "|"+'{:^6}'.format('CONN')+"|"+'{:^8}'.format('MINE')+ \
     "|")
 print("  --------------------------------------------------------------------------------------")    
+try:
+    coinlist.remove('HUSH3')
+except:
+    pass
 for coin in coinlist:
     try:
         if coin == 'GAME' or coin == 'EMC2':
@@ -90,7 +94,8 @@ for coin in coinlist:
                     "conn": connected.strip()
                     }
         stats_data.append(json_row)
-    except:
+    except Exception as e:
+        print(e)
         print(coin+" has problem, might not be running!")
         pass
 

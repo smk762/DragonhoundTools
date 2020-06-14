@@ -20,6 +20,7 @@ function makeRaw() {
     done
     OutAmount=$(echo "scale=8; $OutAmount - 0.00000001" | bc) OutAmount=${OutAmount/#./0.}
     RawOut="${RawOut::-1}" RawOut=$RawOut"] {\"$Radd\":$OutAmount}"
+    echo $RawOut
 }
 function addnlocktime() {
     nlocktime=$(printf "%08x" $(date +%s) | dd conv=swab 2>/dev/null | rev)
@@ -31,13 +32,20 @@ function addnlocktime() {
 
 function cook_utxos() {
     maxInc="1300" MinCheck="1" RawOut="[" OutAmount="0"
-    maxconf="500000000000"
+    maxconf="1"
     txids=() vouts=() amounts=()
     echo "Finding UTXOS in $maxconf blocks to consolidate ..."
     unspents=$(./komodo-cli${AssetChain} listunspent $MinCheck 120000)
+#echo $unspents
     inputUTXOs=$(jq -cr '[map(select((.spendable == true) and (.rawconfirmations >= 1) and (.interest != 0.00000000))) | .[] | {txid, vout, amount}]' <<<"${unspents}")
-    for txid in $(jq -r '.[].txid' <<<"${inputUTXOs}"); do txids+=("$txid"); done
+# echo $inputUTXOs
+    for txid in $(jq -r '.[].txid' <<<"${inputUTXOs}"); do
+	echo $txid
+	txids+=("$txid"); 
+    done
+
     for vout in $(jq -r '.[].vout' <<<"${inputUTXOs}"); do vouts+=("$vout"); done
+echo $vouts
     for amount in $(jq -r '.[].amount' <<<"${inputUTXOs}"); do
         if [[ "$amount" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
             amounts+=("$amount")
@@ -45,6 +53,7 @@ function cook_utxos() {
             amounts+=("$(printf "%.8f" $amount)")
         fi
     done
+    echo  ${vouts[@]}
     if [[ ${#vouts[@]} -ge $maxInc ]]; then
         makeRaw $maxInc
     else
@@ -57,7 +66,7 @@ function cook_utxos() {
     echo "Sent signed raw consolidated tx: $lasttx"
     echo "$OutAmount ${ac_name} sent to $Radd"
 }
-
+cd ~/komodo/src
 unspent_utxos=$(./komodo-cli${AssetChain} listunspent | jq length)
 echo "========= $unspent_utxos utxos remaining =========="
 while [ ${unspent_utxos} -gt 100 ]; do
