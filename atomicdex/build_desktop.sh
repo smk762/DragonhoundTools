@@ -13,6 +13,8 @@ else
 	echo "checking out dev branch"
 	git checkout dev
 fi;
+
+git pull
 rm -rf build
 mkdir build
 cd build
