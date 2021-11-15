@@ -5,6 +5,33 @@
 
 export DEBIAN_FRONTEND=noninteractive
 
+# install QT (could also be pip3 depending of your python installation)
+pip install aqtinstall
+python3 -m aqt install -O $HOME/Qt 5.15.2 linux desktop -b https://qt-mirror.dannhauer.de/ -m qtcharts qtwidgets debug_info qtwebengine qtwebview
+
+sudo apt-get install build-essential \
+                    libgl1-mesa-dev \
+                    ninja-build \
+                    curl \
+                    wget \
+                    zstd \
+                    software-properties-common \
+                    lsb-release \
+                    libpulse-dev \
+                    libtool \
+                    autoconf \
+                    unzip \
+                    libssl-dev \
+                    libxkbcommon-x11-0 \
+                    libxcb-icccm4 \
+                    libxcb-image0 \
+                    libxcb1-dev \
+                    libxcb-keysyms1-dev \
+                    libxcb-render-util0-dev \
+                    libxcb-xinerama0 \
+                    libgstreamer-plugins-base1.0-dev \
+                    git -y
+
 # get llvm
 wget https://apt.llvm.org/llvm.sh
 chmod +x llvm.sh
