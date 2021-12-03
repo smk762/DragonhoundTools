@@ -20,7 +20,7 @@ PRICES_API = os.getenv("PRICES_API")
 PRICES_API_TIMEOUT = os.getenv("PRICES_API_TIMEOUT")
 USE_BIDIRECTIONAL_THRESHOLD = os.getenv("USE_BIDIRECTIONAL_THRESHOLD") == "True"
 
-ACTIVATE_COMMANDS = requests.get("http://116.203.120.91:8762/api/tools/mm2/get_enable_commands/").json()["commands"]
+ACTIVATE_COMMANDS = requests.get("http://stats.kmd.io/api/atomicdex/activation_commands/").json()["commands"]
 
 PARAMS = {
     "price_url": PRICES_API,
