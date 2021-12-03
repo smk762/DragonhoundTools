@@ -14,7 +14,7 @@ def mm2_proxy(params):
   r = requests.post(MM2_IP, json.dumps(params))
   return r
 
-activate_commands = requests.get("http://116.203.120.91:8762/api/tools/mm2/get_enable_commands/").json()["commands"]
+activate_commands = requests.get("http://stats.kmd.io/api/atomicdex/activation_commands/").json()["commands"]
 
 error_coins = []
 coins_count = 0
