@@ -1,8 +1,17 @@
 # custom
 *_7776
+coins
 config.json
 pending/
 others/
+userpass
+*.json
+*.csv
+*.zip
+mm2
+libmm2.a
+DB/
+.env
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
