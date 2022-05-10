@@ -1,4 +1,4 @@
-Here's a list of potentially useful commands which one of the notary nodes has mentioned in Discord:
+Here's a list of potentially useful commands which have been mentioned in the Komodo Notary Node channel on Discord.
 
 Shortcut to importing key into other chain, rescanning from 10 blocks before current tip:
 
@@ -19,7 +19,6 @@ done
 
 Checks if chain running, launches if not:
 ```bash
-#!/bin/bash
 test_rick=$(pgrep -a komodod | grep 'RICK')
 
 username="YOUR_USERNAME" # change this!
@@ -33,5 +32,14 @@ if [[ ${#test_rick} -lt 80 ]]; then
 else
         /home/${username}/komodo/src/komodo-cli -ac_name=RICK setgenerate true $mining
         echo "RICK already running";
+fi
+```
+
+Checks if mining, and if not starts miner
+```bash
+test_mining=$(komodo-cli getgenerate | jq .numthreads)
+
+if [[ ${test_mining} -lt 1 ]]; then
+    komodo-cli setgenerate true 1
 fi
 ```
