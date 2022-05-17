@@ -43,3 +43,13 @@ if [[ ${test_mining} -lt 1 ]]; then
     komodo-cli setgenerate true 1
 fi
 ```
+
+# Dust Attack Recovery
+
+To check if you affected or not:
+
+`time (~/komodo/src/komodo-cli listunspent | jq '. | { "utxos" : length }' && ~/komodo/src/komodo-cli getwalletinfo | jq '{ "txcount" : .txcount }') | jq -s add`
+
+If you'll see > 1000 utxos - you are affected. To merge all your utxos into one, use the following snippet few times:
+
+`~/komodo/src/komodo-cli z_mergetoaddress '["ANY_TADDR"]' %YOUR_NOTARY_ADDRESS% 0.0001 0 0`
