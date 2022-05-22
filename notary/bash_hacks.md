@@ -53,3 +53,11 @@ To check if you affected or not:
 If you'll see > 1000 utxos - you are affected. To merge all your utxos into one, use the following snippet few times:
 
 `~/komodo/src/komodo-cli z_mergetoaddress '["ANY_TADDR"]' %YOUR_NOTARY_ADDRESS% 0.0001 0 0`
+
+# System load
+```
+#!/bin/sh
+free -m | awk 'NR==2{printf "RAM: %s/%sMB (%.2f%%)\n", $3,$2,$3*100/$2 }'
+df -h | awk '$NF=="/"{printf "HDD: %d/%dGB (%s)\n", $3,$2,$5}'
+top -bn1 | grep load | awk '{printf "CPU: %.2f\n", $(NF-2)}' ```
+
