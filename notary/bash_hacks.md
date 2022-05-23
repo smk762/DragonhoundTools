@@ -55,9 +55,16 @@ If you'll see > 1000 utxos - you are affected. To merge all your utxos into one,
 `~/komodo/src/komodo-cli z_mergetoaddress '["ANY_TADDR"]' %YOUR_NOTARY_ADDRESS% 0.0001 0 0`
 
 # System load
-```
+```bash
 #!/bin/sh
 free -m | awk 'NR==2{printf "RAM: %s/%sMB (%.2f%%)\n", $3,$2,$3*100/$2 }'
 df -h | awk '$NF=="/"{printf "HDD: %d/%dGB (%s)\n", $3,$2,$5}'
-top -bn1 | grep load | awk '{printf "CPU: %.2f\n", $(NF-2)}' ```
+top -bn1 | grep load | awk '{printf "CPU: %.2f\n", $(NF-2)}' 
+```
 
+
+# Quick rescan (from Shossain)
+```bash
+./komodo-cli z_importkey "secret-extended-key-main1qwz9ku3nqqqqpqpdh0a7ny03ql3svcr8pqartwk77ckqpx00mysg0s488338yng2mjy3rp2zkav9ztmmvrp0j3daheuxuz2eg8jn93wzuzp6cekzrznq8v28td273aajger7xvjp7j43g00n25qc6nfrjtz5q9qrm5jrznq8k8pytprvl7m680w2787wntg8exwnv09xs95cmcze9tayfxay2cgeylwrw2xqhmjkxd8m3zvgzeyjdte3ypcaax7muv04u725jazuttsh52exn" "yes" 2918300
+# this z-addr key is just a generic one and doesn't include any funds
+```
