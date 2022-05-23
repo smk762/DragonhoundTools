@@ -1,11 +1,19 @@
 #!/usr/bin/env python3
+import sys
 import time
 import requests
 import lib_rpc
 
-coin = ""
-pubkey = ""
-address = ""
+if len(sys.argv) == 4:
+    coin = sys.argv[1]
+    pubkey = sys.argv[2]
+    address = sys.argv[3]
+else:
+    coin = input("coin: ")
+    pubkey = input("pubkey: ")
+    address = input("address: ")
+
+
 
 rpc = lib_rpc.def_credentials(coin)
 
@@ -15,13 +23,16 @@ r = requests.get(url)
 utxos = r.json()["results"]["utxos"]
 inputs = []
 value = 0
+remaining_inputs = len(utxos)
+merge_amount = 800
+
 for utxo in utxos:
     input_utxo = {"txid": utxo["txid"], "vout": utxo["vout"]}
     inputs.append(input_utxo)
     value += utxo["amount"]
 
-    if len(inputs) > 100:
-
+    if len(inputs) > merge_amount or len(inputs) == remaining_inputs:
+        remaining_inputs -= merge_amount
         vouts = {
             address: int(value),
         }
@@ -44,4 +55,5 @@ for utxo in utxos:
 
         inputs = []
         value = 0
+        print(f"{remaining_inputs} remaining utxos")
         time.sleep(4)
