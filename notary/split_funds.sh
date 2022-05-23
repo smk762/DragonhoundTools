@@ -14,7 +14,7 @@ cd "${BASH_SOURCE%/*}" || exit
 # e.g.   ./splitfunds OOT 50 0
 
 NN_ADDRESS=RUfGdUVjvwC1ivquiN43Fu8aXJ6pCjkirp
-txfee=0
+txfee=0.0001
 
 # fetch this coins cli path
 if [[ ! -z $1 ]]; then
