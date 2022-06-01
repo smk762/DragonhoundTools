@@ -27,6 +27,9 @@ remaining_inputs = len(utxos)
 merge_amount = 800
 
 for utxo in utxos:
+    if utxo["confirmations"] < 100:
+        remaining_inputs -= 1
+        continue
     input_utxo = {"txid": utxo["txid"], "vout": utxo["vout"]}
     inputs.append(input_utxo)
     value += utxo["amount"]
