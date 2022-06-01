@@ -25,7 +25,7 @@ inputs = []
 value = 0
 remaining_inputs = len(utxos)
 merge_amount = 800
-
+print(f"consolidating {coin}...")
 for utxo in utxos:
     if utxo["confirmations"] < 100:
         remaining_inputs -= 1
@@ -58,5 +58,5 @@ for utxo in utxos:
 
         inputs = []
         value = 0
-        print(f"{remaining_inputs} remaining utxos")
+        print(f"{coin} has {remaining_inputs} remaining utxos")
         time.sleep(4)
