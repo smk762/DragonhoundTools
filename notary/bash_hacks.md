@@ -68,3 +68,9 @@ top -bn1 | grep load | awk '{printf "CPU: %.2f\n", $(NF-2)}'
 ./komodo-cli z_importkey "secret-extended-key-main1qwz9ku3nqqqqpqpdh0a7ny03ql3svcr8pqartwk77ckqpx00mysg0s488338yng2mjy3rp2zkav9ztmmvrp0j3daheuxuz2eg8jn93wzuzp6cekzrznq8v28td273aajger7xvjp7j43g00n25qc6nfrjtz5q9qrm5jrznq8k8pytprvl7m680w2787wntg8exwnv09xs95cmcze9tayfxay2cgeylwrw2xqhmjkxd8m3zvgzeyjdte3ypcaax7muv04u725jazuttsh52exn" "yes" 2918300
 # this z-addr key is just a generic one and doesn't include any funds
 ```
+
+
+# Get utxos from insight api
+```bash
+inputUTXOs=$(curl -s https://kmd.explorer.dexstats.info/insight-api-komodo/addr/${NNaddy}/utxo|jq '.|[map(select(((.confirmations|tonumber) > 200 and (.amount|tonumber) == 0.0001) or ((.confirmations|tonumber) > 100 and (.amount|tonumber) != 0.0001)))| .[] | {txid, vout, amount, confirmations}]')
+```
