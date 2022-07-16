@@ -13,8 +13,9 @@ from dotenv import load_dotenv
 # sudo apt-get install libgnutls28-dev python3 python3-pip python3-setuptools python3-six
 # pip3 install slick-bitcoinrpc==0.1.4
 
-# Usage: 
-# 
+# Usage:
+# ./scan_peers.py [season] [server]
+# Returns list of IP addresses from `getpeersinfo` which appear in 4+ chains
 
 
 # define data dir
