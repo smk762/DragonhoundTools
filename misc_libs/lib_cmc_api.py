@@ -6,14 +6,16 @@ import json
 from dotenv import load_dotenv
 
 load_dotenv()
-API_KEY = os.getenv('API_KEY')
+CMC_API_KEY = os.getenv('CMC_API_KEY')
+if len(CMC_API_KEY) == 0:
+    print("You need to add an entry to your `.env` file for CMC_API_KEY")
 
 HEADERS = {
     'Accepts': 'application/json',
-    'X-CMC_PRO_API_KEY': API_KEY,
+    'X-CMC_PRO_API_KEY': CMC_API_KEY,
 }
 
-BASE_URL = 'https://pro-api.coinmarketcap.com/v1'
+BASE_URL = 'https://pro-api.coinmarketcap.com'
 session = Session()
 session.headers.update(HEADERS)
 
@@ -22,14 +24,11 @@ def get_cmc_map():
         'start':'1',
         'sort':'cmc_rank',
     }
-    resp = api("cryptocurrency/map", params)
-    print(resp)
-    with open('cmc_map.json', 'w+') as f:
-        json.dump(resp['data'], f)
+    return api("cryptocurrency/map", params)    
 
-def api(endpoint, params):
+def api(endpoint, params, api_version='v1'):
     try:
-        url = f'{BASE_URL}/{endpoint}'
+        url = f'{BASE_URL}/{api_version}/{endpoint}'
         response = session.get(url, params=params)
         data = json.loads(response.text)
         return data
@@ -38,4 +37,7 @@ def api(endpoint, params):
         return None
 
 if __name__ == '__main__':
-    get_cmc_map()
+    resp = get_cmc_map()
+    with open('cmc_map.json', 'w+') as f:
+        print(resp)
+        json.dump(resp['data'], f)
