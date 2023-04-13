@@ -1,0 +1,21 @@
+[Unit]
+Description=komodo-deamon
+Wants=network-online.target
+After=network-online.target
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Service]
+StandardOutput=append:/home/explorer/logs/kmd.log
+StandardError=append:/home/explorer/logs/kmd.log
+Environment=pubkey=02b69113368ed3468098185a20f88add403721da38286ab9bcfc13e1b87b17a004
+User=explorer
+Group=explorer
+Type=simple
+ExecStart=/home/explorer/deamons/komodod -pubkey=$pubkey
+WorkingDirectory=/home/explorer/deamons
+Restart=on-failure
+RestartSec=10s
+
+[Install]
+WantedBy=multi-user.target

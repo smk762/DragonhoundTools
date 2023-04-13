@@ -1,0 +1,4 @@
+[FastAPI]
+title=FastAPI
+description=FastAPI
+ports=8080

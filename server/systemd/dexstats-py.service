@@ -1,0 +1,21 @@
+[Unit]
+Description=Test Service
+Wants=network-online.target
+After=network-online.target
+Conflicts=getty@tty1.service
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Service]
+User=root
+Group=root
+Type=simple
+WorkingDirectory=/home/atomic/dexstats_sqlite_py
+ExecStart=/usr/bin/python3 /home/atomic/dexstats_sqlite_py/main.py
+Restart=on-failure
+RestartSec=10s
+StandardInput=tty-force
+
+[Install]
+WantedBy=multi-user.target
+

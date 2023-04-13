@@ -1,0 +1,62 @@
+[Komodo P2P]
+title=KMD P2P
+description=Komodo p2p port
+ports=7770
+
+[Komodo RPC]
+title=KMD RPC
+description=Komodo p2p port
+ports=7771
+
+[Komodo Full]
+title=KMD Full
+description=Komodo p2p port
+ports=7770,7771/tcp
+
+
+[Rick P2P]
+title=RICK P2P
+description=Rick p2p port
+ports=25434
+
+[Rick RPC]
+title=RICK RPC
+description=Rick p2p port
+ports=25435
+
+[Rick Full]
+title=RICK Full
+description=Rick p2p and rpc port
+ports=25434,25435/tcp
+
+
+[Morty P2P]
+title=MORTY P2P
+description=Morty p2p port
+ports=16347
+
+[Morty RPC]
+title=MORTY RPC
+description=Morty p2p port
+ports=16348
+
+[Morty Full]
+title=MORTY Full
+description=Morty p2p and rpc port
+ports=16347,16348/tcp
+
+
+[Zombie P2P]
+title=ZOMBIE P2P
+description=Zombie p2p port
+ports=56153
+
+[Zombie RPC]
+title=ZOMBIE RPC
+description=Zombie p2p port
+ports=56154
+
+[Zombie Full]
+title=ZOMBIE Full
+description=Zombie p2p and rpc port
+ports=56153,56154/tcp
