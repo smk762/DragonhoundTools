@@ -14,7 +14,6 @@ else:
     address = input("address: ")
 
 
-
 rpc = lib_rpc.def_credentials(coin)
 
 # get a utxo
