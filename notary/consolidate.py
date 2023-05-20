@@ -225,7 +225,8 @@ class NotaryNode:
                 print(f"{coin} has {remaining_inputs} remaining utxos")
                 time.sleep(4)
 
-    def move_wallet(self, coin, now):
+    def move_wallet(self, coin):
+        now = int(time.time())
         wallet = self.coins_data[coin]["wallet"]
         wallet_bk = wallet.replace("wallet.dat", f"wallet_{now}.dat")
         os.rename(wallet, wallet_bk)
@@ -254,9 +255,8 @@ if __name__ == '__main__':
     if len(sys.argv) == 2:
 
         if sys.argv[1] == "backup_wallets":
-            now = int(time.time())
             for coin in node.coins:
-                node.move_wallet(coin, now)
+                node.move_wallet(coin)
 
         elif sys.argv[1] == "stop":
             for coin in node.coins:
