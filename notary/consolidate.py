@@ -185,8 +185,16 @@ class NotaryNode:
 
             if len(inputs) > merge_amount or len(inputs) == remaining_inputs:
                 remaining_inputs -= merge_amount
-                vouts = {address: int(value)}
-                if coin == "KMD": vouts.update({self.address: 1})
+                vouts = {address: int(value)-1}
+                if coin == "KMD":
+                    if int(value) > 0.1:
+                        vouts.update({
+                            SWEEP_ADDRESS: int(value) - 0.1,
+                            self.address: 0.1
+                        })
+                    else: return
+                else:
+                    vouts = {self.address: int(value)}
 
                 try:
                     rawhex = rpc.createrawtransaction(inputs, vouts)
