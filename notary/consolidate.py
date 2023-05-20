@@ -139,7 +139,7 @@ class NotaryNode:
             except:
                 pass
 
-    def stop(self, coin, height):
+    def stop(self, coin):
         rpc = lib_rpc.def_credentials(coin)
         rpc.stop()
         self.wait_for_stop(coin)
