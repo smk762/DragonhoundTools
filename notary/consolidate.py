@@ -28,10 +28,10 @@ class KMD_CoinParams(CoreMainParams):
 class NotaryNode:
     def __init__(self):
         self.coins_data = {}
+        self.home = os.path.expanduser('~')
         self.assetchains = self.get_assetchains()
         self.coins = [i["ac_name"] for i in self.assetchains] 
         self.coins.append("KMD")
-        self.home = os.path.expanduser('~')
         self.iguana_dir = f"{self.home}/dPoW/iguana"
         self.log_path = f"{self.home}/logs"
         self.pubkey = self.get_pubkey()
@@ -248,13 +248,6 @@ if __name__ == '__main__':
             for coin in node.coins:
                 address = node.import_pk(coin)
 
-        elif sys.argv[1] == "consolidate":
-            for coin in node.coins:
-                try:
-                    node.consolidate(coin['ac_name'])
-                except Exception as e:
-                    print(e)
-
         elif sys.argv[1] == "refresh":
             for coin in node.coins:
                 node.get_blockheight(coin)
@@ -263,3 +256,11 @@ if __name__ == '__main__':
                 node.start(coin)
                 node.import_pk(coin)
                 node.consolidate(coin)
+        else:
+            print("Invalid option. Use 'backup_wallets', 'stop', 'import', or 'refresh'")
+    else:
+        for coin in node.coins:
+            try:
+                node.consolidate(coin['ac_name'])
+            except Exception as e:
+                print(e)
