@@ -108,6 +108,8 @@ class NotaryNode:
         # check if already running
         try:
             block_height = self.get_blockheight(coin)
+            if block_height:
+                print(f"{coin} daemon is already running.")
             return
         except requests.exceptions.RequestException as e:
             pass
