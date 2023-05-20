@@ -1,22 +1,22 @@
 #!/usr/bin/env python3
 import os
 import sys
+import glob
 import time
 import json
 import requests
-import lib_rpc
-import base58
+import subprocess
 import bitcoin # pip3 install python-bitcoinlib
 from bitcoin.core import x
 from bitcoin.core import CoreMainParams
 from bitcoin.wallet import P2PKHBitcoinAddress
-
 from dotenv import load_dotenv
+import lib_rpc
+
 load_dotenv()
 
 SWEEP_ADDRESS = os.getenv("SWEEP_ADDRESS")
 NN_PRIVKEY = os.getenv("NN_PRIVKEY")
-
 
 class KMD_CoinParams(CoreMainParams):
     MESSAGE_START = b'\x24\xe9\x27\x64'
@@ -25,169 +25,191 @@ class KMD_CoinParams(CoreMainParams):
                        'SCRIPT_ADDR': 85,
                        'SECRET_KEY': 188}
 
+class NotaryNode:
+    def __init__(self):
+        self.coins_data = {}
+        self.assetchains = self.get_assetchains()
+        self.coins = [i["ac_name"] for i in self.assetchains] 
+        self.coins.append("KMD")
+        self.home = os.path.expanduser('~')
+        self.iguana_dir = f"{self.home}/dPoW/iguana"
+        self.log_path = f"{self.home}/logs"
+        self.pubkey = self.get_pubkey()
+        self.address = self.get_address(self.pubkey)
+        self.launch_params = self.get_launch_params()
 
-def consolidate(coin, pubkey, address):
-    rpc = lib_rpc.def_credentials(coin)
+    def get_assetchains(self):
+        with open(f"{self.home}/dPoW/iguana/assetchains.json") as file:
+            data = json.load(file)
+            [self.coins_data.update({i["coin"] : {}}) for i in data]
+            return data
 
-    # get a utxo
-    url = f"http://stats.kmd.io/api/tools/pubkey_utxos/?coin={coin}&pubkey={pubkey}"
-    r = requests.get(url)
-    utxos = r.json()["results"]["utxos"]
-    inputs = []
-    value = 0
-    remaining_inputs = len(utxos)
-    merge_amount = 800
-    print(f"consolidating {coin}...")
-    for utxo in utxos:
-        if utxo["confirmations"] < 100:
-            remaining_inputs -= 1
-            continue
-        input_utxo = {"txid": utxo["txid"], "vout": utxo["vout"]}
-        inputs.append(input_utxo)
-        value += utxo["amount"]
+    def calc_coins_data(self):
+        for coin in self.coins:
+            if coin == "KMD": wallet = f"{self.home}/.komodo/wallet.dat"
+            else: wallet = f"{self.home}/.komodo/{coin}/wallet.dat"
+            if coin not in self.coins_data:
+                self.coins_data.update({coin: {}})
+            self.coins_data[coin].update({
+                "height": self.get_blockheight(coin),
+                "wallet": wallet
+            })
 
-        if len(inputs) > merge_amount or len(inputs) == remaining_inputs:
-            remaining_inputs -= merge_amount
-            vouts = {
-                address: int(value),
-           }
+    def get_pubkey(self):
+        with open(f"{self.iguana_dir}/pubkey.txt") as f:
+            return f.read().replace("pubkey=", "").strip()
 
-            try:
-                rawhex = rpc.createrawtransaction(inputs, vouts)
-                #print(f"rawhex: {rawhex}")
-                time.sleep(0.1)
-                signedhex = rpc.signrawtransaction(rawhex)
-                #print(f"signedhex: {signedhex}")
-                time.sleep(0.1)
-                txid = rpc.sendrawtransaction(signedhex["hex"])
-                print(f"Sent {value} to {address}")
-                print(f"txid: {txid}")
-                time.sleep(0.1)
-            except Exception as e:
-                print(e)
-                print(utxo)
-                print(vouts)
+    def get_address(self, pubkey):
+        bitcoin.params = KMD_CoinParams
+        return str(P2PKHBitcoinAddress.from_pubkey(x(pubkey)))
 
-            inputs = []
-            value = 0
-            print(f"{coin} has {remaining_inputs} remaining utxos")
-            time.sleep(4)
+    def get_blockheight(self, coin):
+        try:
+            rpc = lib_rpc.def_credentials(coin)
+            return rpc.getblockcount()
+        except Exception as e:
+            return None
 
+    def import_pk(self, coin):
+        rpc = lib_rpc.def_credentials(coin)
+        height = self.coins_data[coin]["height"]
+        return rpc.importprivkey(NN_PRIVKEY, "", True, height)
 
-def get_coins():
-    with open(f"{os.path.expanduser('~')}/dPoW/iguana/assetchains.json") as file:
-        return json.load(file)
+    def format_param(self, param, value):
+        return '-' + param + '=' + value
 
+    def write_coins_data(self, coins_data):
+        with open("coins_data.json", "w") as f:
+            f.write(json.dumps(coins_data, indent=4))
 
-def get_pubkey():
-    rpc = lib_rpc.def_credentials("KMD")
-    return rpc.getinfo()["pubkey"]
+    def read_coins_data(self):
+        with open("coins_data.json", "r") as f:
+            return json.loads(f)
 
+    def get_launch_params(self):
+        script_dir = os.path.dirname(__file__)
+        launch_params = {}
+        for coin in self.assetchains:
+            params = []
+            for param, value in coin.items():
+                if isinstance(value, list):
+                    for dupe_value in value:
+                        params.append(self.format_param(param, dupe_value))
+                else:
+                    params.append(self.format_param(param, value))
+            launch_params.update({coin: params})
+        launch_params.update({"KMD": f"-minrelaytxfee=0.000035 -opretmintxfee=0.004 -notary={self.home}/.litecoin/litecoin.conf"})
+        return launch_params
 
-def get_address(pubkey):
-    bitcoin.params = KMD_CoinParams
-    return str(P2PKHBitcoinAddress.from_pubkey(x(pubkey)))
-
-
-def get_wallets():
-    for filename in glob.iglob(f"{os.path.expanduser('~')}/.komodo**/wallet.dat", recursive = True):
-        print(filename)
-
-
-def get_blockheight(coin):
-    rpc = lib_rpc.def_credentials(coin)
-    return rpc.getblockcount()
-
-
-def write_blocks(blocks):
-    with open("blocks.json", "w") as f:
-        f.write(json.dumps(blocks, indent=4))
-
-
-def read_blocks(blocks):
-    with open("blocks.json", "r") as f:
-        return json.loads(blocks))
-
-
-def import_pk(coin, height):
-    rpc = lib_rpc.def_credentials(coin)
-    return rpc.importprivkey(PRIVKEY, "", True, height)
-
-
-def stop(coin, height):
-    rpc = lib_rpc.def_credentials(coin)
-    rpc.stop()
-
-
-def format_param(param, value):
-    return '-' + param + '=' + value
-
-
-def get_launch_params():
-    script_dir = os.path.dirname(__file__)
-    with open(f"{script_dir}/dPow/iguana/assetchains.json") as file:
-        assetchains = json.load(file)
-    launch_params = {}
-    for coin in assetchains:
-        params = []
-        for param, value in chain.items():
-            if isinstance(value, list):
-                for dupe_value in value:
-                    params.append(format_param(param, dupe_value))
-            else:
-                params.append(format_param(param, value))
-        launch_params.update({coin: params})
-    return launch_params
-
-roxy(coin, "setgenerate", [mining, cores])['result']
-
-
-def start_chain(coin, pubkey, launch_params):
-        params = launch_params[coin]
+    def start_chain(self, coin):
+        rpc = lib_rpc.def_credentials(coin)
+        params = self.launch_params[coin]
         # check if already running
         try:
-            block_height = getblockcount(coin)
+            block_height = self.get_blockheight(coin)
             return
         except requests.exceptions.RequestException as e:
             pass
-        launch = f"{os.path.expanduser('~')}/komodo/src/komodod {params} -pubkey={pubkey}"
-        log_output = open(f"{coin}_daemon.log",'w+')
-        subprocess.Popen(launch_params, stdout=log_output, stderr=log_output, universal_newlines=True, preexec_fn=preexec)
+        launch = f"{self.home}/komodo/src/komodod {params} -whitelistaddress={self.address} -pubkey={self.pubkey}"
+        log_output = open(f"{self.log_path}/{coin}_daemon.log",'w+')
+        subprocess.Popen(launch, stdout=log_output, stderr=log_output, universal_newlines=True)
         time.sleep(3)
         print('{:^60}'.format( f"{coin} daemon starting."))
         print('{:^60}'.format( f"Use 'tail -f {coin}_daemon.log' for mm2 console messages."))
+        self.wait_for_start(coin)
 
+    def wait_for_start(self, coin):
+        i = 0
+        rpc = lib_rpc.def_credentials(coin)
+        while True:
+            try:
+                i += 1
+                if i == 15:
+                    print(f"Looks like there might be an issue with loading {coin}...")
+                    print(f"We'll try and start it again, but  you need it here are the launch params to do it manually:")
+                    print(' '.join(self.get_launch_params(coin)))
+                    # TODO: Send an alert if this happens
+                    return False
+                print(f"Waiting for {coin} daemon to restart...")
+                time.sleep(30)
+                block_height = self.get_blockheight(coin)
+                if block_height:
+                    return True
+            except:
+                pass
 
-def wait_for_stop(coin):
-    while True:
-        try:
-            print(f"Waiting for {coin} daemon to stop...")
-            time.sleep(10)
-            block_height = getblockcount(coin)
-        except requests.exceptions.RequestException as e:
-            break
-    time.sleep(10)
+    def stop(self, coin, height):
+        rpc = lib_rpc.def_credentials(coin)
+        rpc.stop()
+        self.wait_for_stop(coin)
 
+    def wait_for_stop(self, coin):
+        i = 0
+        rpc = lib_rpc.def_credentials(coin)
+        while True:
+            try:
+                i += 1
+                if i == 15:
+                    print(f"Looks like there might be an issue with stopping {coin}...")
+                    # TODO: Send an alert if this happens
+                    return False
 
-def wait_for_start(coin):
-    i = 0
-    while True:
-        try:
-            i += 1
-            if i > 8:
-                start_chain(coin)
-                print(f"Looks like there might be an issue with loading {coin}...")
-                print(f"We'll try and start it again, but  you need it here are the launch params to do it manually:")
-                print(' '.join(get_launch_params(coin)))
-                i = 0
-            print(f"Waiting for {coin} daemon to restart...")
-            time.sleep(30)
-            block_height = getblockcount(coin)
-            print(block_height)
-            if block_height:
-                return block_height
-        except:
-            pass
+                print(f"Waiting for {coin} daemon to stop...")
+                time.sleep(15)
+                block_height = self.get_blockheight(coin)
+            except requests.exceptions.RequestException as e:
+                return True
+        time.sleep(10)
+
+    def consolidate(self, coin):
+        rpc = lib_rpc.def_credentials(coin)
+
+        # get a utxo
+        url = f"http://stats.kmd.io/api/tools/pubkey_utxos/?coin={self.coin}&pubkey={self.pubkey}"
+        r = requests.get(url)
+        utxos = r.json()["results"]["utxos"]
+        inputs = []
+        value = 0
+        remaining_inputs = len(utxos)
+        merge_amount = 800
+        print(f"consolidating {coin}...")
+        if coin == "KMD": address = SWEEP_ADDRESS
+        else: address = self.address
+        for utxo in utxos:
+            if utxo["confirmations"] < 100:
+                remaining_inputs -= 1
+                continue
+            input_utxo = {"txid": utxo["txid"], "vout": utxo["vout"]}
+            inputs.append(input_utxo)
+            value += utxo["amount"]
+
+            if len(inputs) > merge_amount or len(inputs) == remaining_inputs:
+                remaining_inputs -= merge_amount
+                vouts = {
+                    address: int(value),
+                }
+
+                try:
+                    rawhex = rpc.createrawtransaction(inputs, vouts)
+                    #print(f"rawhex: {rawhex}")
+                    time.sleep(0.1)
+                    signedhex = rpc.signrawtransaction(rawhex)
+                    #print(f"signedhex: {signedhex}")
+                    time.sleep(0.1)
+                    txid = rpc.sendrawtransaction(signedhex["hex"])
+                    print(f"Sent {value} to {address}")
+                    print(f"txid: {txid}")
+                    time.sleep(0.1)
+                except Exception as e:
+                    print(e)
+                    print(utxo)
+                    print(vouts)
+
+                inputs = []
+                value = 0
+                print(f"{coin} has {remaining_inputs} remaining utxos")
+                time.sleep(4)
+
 
 
 
@@ -202,64 +224,42 @@ if __name__ == '__main__':
     # - import: Import privkey from blocks info
     # - all: Consolidates funds, sweeps KMD
 
-    if len(sys.argv) == 2:
-        if sys.argv[1] == "blocks":
-            blocks = {}
-            coins = get_coins()
-            for coin in coins:
-                if coin = "KMD": wallet = f"{os.path.expanduser('~')}/.komodo/wallet.dat"
-                else: wallet = f"{os.path.expanduser('~')}/.komodo/{coin}/wallet.dat"
-                blocks.update({
-                    coin: {
-                        "height": get_blockheight(coin),
-                        "wallet": wallet
-                })
-            write_blocks(blocks)
+    node = NotaryNode()
+    print(f"Pubkey: {node.pubkey}")
+    print(f"Address: {node.address}")
+    print(f"Coins: {node.coins}")
+    print(f"Coins data: {node.coins_data}") 
 
-        if sys.argv[1] == "clean_wallet":
-            blocks = read_blocks()
+
+    if len(sys.argv) == 2:
+
+        if sys.argv[1] == "backup_wallets":
             now = int(time.time())
-            for coin in blocks:
-                 wallet = blocks[coin]["wallet"]
+            for coin in node.coins:
+                 wallet = node.coins_data[coin]["wallet"]
                  wallet_bk = wallet.replace("wallet.dat", f"wallet_{now}.dat")
                  os.rename(wallet, wallet_bk)
 
-        if sys.argv[1] == "stop":
-            blocks = read_blocks()
-            for coin in blocks:
-                address = stop(coin)
-                print(f"Stopped {coin}")
+        elif sys.argv[1] == "stop":
+            for coin in node.coins:
+                address = node.stop(coin)
 
+        elif sys.argv[1] == "import":
+            for coin in node.coins:
+                address = node.import_pk(coin)
 
-        if sys.argv[1] == "import":
-            blocks = read_blocks()
-            for coin in blocks:
-                address = import_pk(coin, blocks[coin]["height"])
-                print(f"Imported privkey into {coin} on block {blocks[coin]['height']}: {address}")
-
-
-        if sys.argv[1] == "all":
-            coins = get_coins()
-            pubkey = get_pubkey()
-            address = get_address(pubkey)
-            for coin in coins:
-                if coin = "KMD" and SWEEP_ADDRESS:
-                    adress = SWEEP_ADDRESS
-                print(f"Consolidating | {coin['ac_name']} | {pubkey}  {address}")
+        elif sys.argv[1] == "consolidate":
+            for coin in node.coins:
                 try:
-                    consolidate(coin['ac_name'], pubkey, address)
+                    node.consolidate(coin['ac_name'])
                 except Exception as e:
                     print(e)
 
-
-    elif len(sys.argv) == 4:
-        coin = sys.argv[1]
-        pubkey = sys.argv[2]
-        address = sys.argv[3]
-        consolidate(coin, pubkey, address)
-    else:
-        coin = input("coin: ")
-        pubkey = input("pubkey: ")
-        address = input("address: ")
-        consolidate(coin, pubkey, address)
-
+        elif sys.argv[1] == "refresh":
+            for coin in node.coins:
+                node.get_blockheight(coin)
+                node.stop(coin)
+                node.move_wallet(coin)
+                node.start(coin)
+                node.import_pk(coin)
+                node.consolidate(coin)
