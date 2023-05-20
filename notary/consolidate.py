@@ -85,11 +85,10 @@ class NotaryNode:
             return json.loads(f)
 
     def get_launch_params(self):
-        script_dir = os.path.dirname(__file__)
         launch_params = {}
-        for coin in self.coins:
+        for i in self.assetchains:
             params = []
-            for param, value in coin.items():
+            for param, value in i.items():
                 if isinstance(value, list):
                     for dupe_value in value:
                         params.append(self.format_param(param, dupe_value))
@@ -241,6 +240,10 @@ if __name__ == '__main__':
         elif sys.argv[1] == "stop":
             for coin in node.coins:
                 address = node.stop(coin)
+
+        elif sys.argv[1] == "start":
+            for coin in node.coins:
+                address = node.start_chain(coin)
 
         elif sys.argv[1] == "import":
             for coin in node.coins:
