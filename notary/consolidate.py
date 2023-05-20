@@ -34,6 +34,8 @@ class NotaryNode:
         self.coins_data = self.calc_coins_data()
         self.iguana_dir = f"{self.home}/dPoW/iguana"
         self.log_path = f"{self.home}/logs"
+        if not os.path.exists(self.log_path):
+            os.makedirs(self.log_path)
         self.pubkey = self.get_pubkey()
         self.address = self.get_address(self.pubkey)
         self.launch_params = self.get_launch_params()
