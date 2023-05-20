@@ -43,15 +43,17 @@ class NotaryNode:
             return json.load(file)
 
     def calc_coins_data(self):
+        coins_data = {}
         for coin in self.coins:
             if coin == "KMD": wallet = f"{self.home}/.komodo/wallet.dat"
             else: wallet = f"{self.home}/.komodo/{coin}/wallet.dat"
-            if coin not in self.coins_data:
-                self.coins_data.update({coin: {}})
-            self.coins_data[coin].update({
+            if coin not in coins_data:
+                coins_data.update({coin: {}})
+            coins_data[coin].update({
                 "height": self.get_blockheight(coin),
                 "wallet": wallet
             })
+        return coins_data
 
     def get_pubkey(self):
         with open(f"{self.iguana_dir}/pubkey.txt") as f:
