@@ -275,6 +275,7 @@ if __name__ == '__main__':
             print("Invalid option. Use 'backup_wallets', 'stop', 'import', or 'refresh'")
     else:
         for coin in node.coins:
+            print(f"Consolidating {coin}...")
             try:
                 node.consolidate(coin)
             except Exception as e:
