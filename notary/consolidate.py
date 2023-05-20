@@ -27,7 +27,7 @@ class KMD_CoinParams(CoreMainParams):
 
 class NotaryNode:
     def __init__(self):
-        self.coins_data = calc_coins_data()
+        self.coins_data = self.calc_coins_data()
         self.home = os.path.expanduser('~')
         self.assetchains = self.get_assetchains()
         self.coins = [i["ac_name"] for i in self.assetchains] 
