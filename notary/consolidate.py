@@ -141,8 +141,12 @@ class NotaryNode:
 
     def stop(self, coin):
         rpc = lib_rpc.def_credentials(coin)
-        rpc.stop()
-        self.wait_for_stop(coin)
+        try:
+            rpc.stop()
+            self.wait_for_stop(coin)
+        except Exception as e:
+            print(e)
+
 
     def wait_for_stop(self, coin):
         i = 0
