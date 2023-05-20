@@ -185,7 +185,7 @@ class NotaryNode:
         print(f"consolidating {coin}...")
         if coin == "KMD": address = SWEEP_ADDRESS
         else: address = self.address
-        if len(utxos) > 50:
+        if len(utxos) > 50 and rpc.getbalance() > 0.1:
             print(f"Less than 50 UTXOs to consolidate {coin}")
             return
         for utxo in utxos:
