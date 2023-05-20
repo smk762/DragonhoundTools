@@ -40,9 +40,7 @@ class NotaryNode:
 
     def get_assetchains(self):
         with open(f"{self.home}/dPoW/iguana/assetchains.json") as file:
-            data = json.load(file)
-            [self.coins_data.update({i["coin"] : {}}) for i in data]
-            return data
+            return json.load(file)
 
     def calc_coins_data(self):
         for coin in self.coins:
