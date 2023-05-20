@@ -111,7 +111,7 @@ class NotaryNode:
             block_height = self.get_blockheight(coin)
             if block_height:
                 print(f"{coin} daemon is already running.")
-            return
+                return
         except Exception as e:
             print(e)
         launch = f"{self.home}/komodo/src/komodod {params} -whitelistaddress={self.address} -pubkey={self.pubkey}"
