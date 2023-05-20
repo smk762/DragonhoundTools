@@ -27,11 +27,11 @@ class KMD_CoinParams(CoreMainParams):
 
 class NotaryNode:
     def __init__(self):
-        self.coins_data = self.calc_coins_data()
         self.home = os.path.expanduser('~')
         self.assetchains = self.get_assetchains()
         self.coins = [i["ac_name"] for i in self.assetchains] 
         self.coins.append("KMD")
+        self.coins_data = self.calc_coins_data()
         self.iguana_dir = f"{self.home}/dPoW/iguana"
         self.log_path = f"{self.home}/logs"
         self.pubkey = self.get_pubkey()
