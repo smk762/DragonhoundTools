@@ -73,6 +73,8 @@ class NotaryNode:
     def import_pk(self, coin):
         rpc = lib_rpc.def_credentials(coin)
         height = self.coins_data[coin]["height"]
+        if not height:
+            height = self.get_blockheight(coin)
         return rpc.importprivkey(NN_PRIVKEY, "", True, height)
 
     def format_param(self, param, value):
