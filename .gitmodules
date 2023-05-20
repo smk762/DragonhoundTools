@@ -1,0 +1,4 @@
+[submodule "notary/dPoW"]
+	path = notary/dPoW
+	url = https://github.com/KomodoPlatform/dPoW
+	branch = dev
