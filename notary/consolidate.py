@@ -226,10 +226,13 @@ class NotaryNode:
                 time.sleep(4)
 
     def move_wallet(self, coin):
-        now = int(time.time())
-        wallet = self.coins_data[coin]["wallet"]
-        wallet_bk = wallet.replace("wallet.dat", f"wallet_{now}.dat")
-        os.rename(wallet, wallet_bk)
+        try:
+            now = int(time.time())
+            wallet = self.coins_data[coin]["wallet"]
+            wallet_bk = wallet.replace("wallet.dat", f"wallet_{now}.dat")
+            os.rename(wallet, wallet_bk)
+        except Exception as e:
+            print(e)
 
 
 
