@@ -105,14 +105,15 @@ class NotaryNode:
     def start(self, coin):
         rpc = lib_rpc.def_credentials(coin)
         params = self.launch_params[coin]
+        print(params)
         # check if already running
         try:
             block_height = self.get_blockheight(coin)
             if block_height:
                 print(f"{coin} daemon is already running.")
             return
-        except requests.exceptions.RequestException as e:
-            pass
+        except Exception as e:
+            print(e)
         launch = f"{self.home}/komodo/src/komodod {params} -whitelistaddress={self.address} -pubkey={self.pubkey}"
         log_output = open(f"{self.log_path}/{coin}_daemon.log",'w+')
         subprocess.Popen(launch, stdout=log_output, stderr=log_output, universal_newlines=True)
@@ -253,8 +254,8 @@ if __name__ == '__main__':
     node = NotaryNode()
     print(f"Pubkey: {node.pubkey}")
     print(f"Address: {node.address}")
-    print(f"Coins: {node.coins}")
-    print(f"Coins data: {node.coins_data}") 
+    #print(f"Coins: {node.coins}")
+    #print(f"Coins data: {node.coins_data}") 
 
 
     if len(sys.argv) == 2:
@@ -277,8 +278,10 @@ if __name__ == '__main__':
 
         elif sys.argv[1] == "refresh":
             for coin in node.coins:
-                node.get_blockheight(coin)
-                node.stop(coin)
+                print(f"Refreshing {coin}...")
+
+                if node.get_blockheight(coin):
+                    node.stop(coin)
                 node.move_wallet(coin)
                 node.start(coin)
                 node.import_pk(coin)
