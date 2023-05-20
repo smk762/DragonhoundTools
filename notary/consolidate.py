@@ -94,7 +94,7 @@ class NotaryNode:
                         params.append(self.format_param(param, dupe_value))
                 else:
                     params.append(self.format_param(param, value))
-            launch_params.update({coin: " ".join(params)})
+            launch_params.update({i["ac_name"]: " ".join(params)})
         launch_params.update({"KMD": f"-minrelaytxfee=0.000035 -opretmintxfee=0.004 -notary={self.home}/.litecoin/litecoin.conf"})
         return launch_params
 
@@ -262,6 +262,6 @@ if __name__ == '__main__':
     else:
         for coin in node.coins:
             try:
-                node.consolidate(coin['ac_name'])
+                node.consolidate(coin)
             except Exception as e:
                 print(e)
