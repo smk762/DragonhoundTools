@@ -118,7 +118,7 @@ class NotaryNode:
             print(e)
         launch = f"{self.home}/komodo/src/komodod {params} -whitelistaddress={self.address} -pubkey={self.pubkey}"
         log_output = open(f"{self.log_path}/{coin}_daemon.log",'w+')
-        subprocess.Popen(launch, stdout=log_output, stderr=log_output, universal_newlines=True)
+        subprocess.Popen(launch.split(" "), stdout=log_output, stderr=log_output, universal_newlines=True)
         time.sleep(3)
         print('{:^60}'.format( f"{coin} daemon starting."))
         print('{:^60}'.format( f"Use 'tail -f {coin}_daemon.log' for mm2 console messages."))
