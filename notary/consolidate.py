@@ -102,7 +102,7 @@ class NotaryNode:
         launch_params.update({"KMD": f"-minrelaytxfee=0.000035 -opretmintxfee=0.004 -notary={self.home}/.litecoin/litecoin.conf"})
         return launch_params
 
-    def start_chain(self, coin):
+    def start(self, coin):
         rpc = lib_rpc.def_credentials(coin)
         params = self.launch_params[coin]
         # check if already running
@@ -264,7 +264,7 @@ if __name__ == '__main__':
 
         elif sys.argv[1] == "start":
             for coin in node.coins:
-                address = node.start_chain(coin)
+                address = node.start(coin)
 
         elif sys.argv[1] == "import":
             for coin in node.coins:
