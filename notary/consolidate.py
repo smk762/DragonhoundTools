@@ -87,7 +87,7 @@ class NotaryNode:
     def get_launch_params(self):
         script_dir = os.path.dirname(__file__)
         launch_params = {}
-        for coin in self.assetchains:
+        for coin in self.coins:
             params = []
             for param, value in coin.items():
                 if isinstance(value, list):
@@ -95,7 +95,7 @@ class NotaryNode:
                         params.append(self.format_param(param, dupe_value))
                 else:
                     params.append(self.format_param(param, value))
-            launch_params.update({coin: params})
+            launch_params.update({coin: " ".join(params)})
         launch_params.update({"KMD": f"-minrelaytxfee=0.000035 -opretmintxfee=0.004 -notary={self.home}/.litecoin/litecoin.conf"})
         return launch_params
 
