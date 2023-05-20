@@ -162,7 +162,7 @@ class NotaryNode:
         rpc = lib_rpc.def_credentials(coin)
 
         # get a utxo
-        url = f"http://stats.kmd.io/api/tools/pubkey_utxos/?coin={self.coin}&pubkey={self.pubkey}"
+        url = f"http://stats.kmd.io/api/tools/pubkey_utxos/?coin={coin}&pubkey={self.pubkey}"
         r = requests.get(url)
         utxos = r.json()["results"]["utxos"]
         inputs = []
