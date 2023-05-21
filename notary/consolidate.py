@@ -181,7 +181,9 @@ class NotaryNode:
         # get a utxo
         url = f"http://stats.kmd.io/api/tools/pubkey_utxos/?coin={coin}&pubkey={self.pubkey}"
         r = requests.get(url)
-        utxos = r.json()["results"]["utxos"]
+        utxos_data = r.json()["results"]["utxos"]
+        utxos = sorted(utxos_data, key=lambda d: d['amount'], reverse=True) 
+
         inputs = []
         value = 0
         remaining_inputs = len(utxos)
