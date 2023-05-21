@@ -153,7 +153,6 @@ class NotaryNode:
         except Exception as e:
             print(e)
 
-
     def wait_for_stop(self, coin):
         i = 0
         rpc = lib_rpc.def_credentials(coin)
@@ -168,7 +167,7 @@ class NotaryNode:
                 print(f"Waiting for {coin} daemon to stop...")
                 time.sleep(15)
                 block_height = self.get_blockheight(coin)
-                if block_height:
+                if not block_height:
                     return True
             except Exception as e:
                 print(e)
