@@ -200,7 +200,9 @@ class NotaryNode:
             input_utxo = {"txid": utxo["txid"], "vout": utxo["vout"]}
             inputs.append(input_utxo)
             value += utxo["amount"]
-
+            print(f"inputs: {len(inputs)}")
+            print(f"value: {value}")
+            print(f"remaining_inputs: {remaining_inputs}")
             if len(inputs) > merge_amount or len(inputs) == remaining_inputs:
                 remaining_inputs -= merge_amount
                 vouts = {address: int(value)-1}
@@ -213,7 +215,6 @@ class NotaryNode:
                     else: return
                 else:
                     vouts = {self.address: int(value)}
-
                 try:
                     rawhex = rpc.createrawtransaction(inputs, vouts)
                     #print(f"rawhex: {rawhex}")
@@ -232,7 +233,8 @@ class NotaryNode:
 
                 inputs = []
                 value = 0
-                print(f"{coin} has {remaining_inputs} remaining utxos")
+                if remaining_inputs < 0: remaining_inputs = 0
+                print(f"{coin} has {remaining_inputs} remaining utxos to process")
                 time.sleep(4)
 
     def move_wallet(self, coin):
