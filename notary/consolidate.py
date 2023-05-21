@@ -130,7 +130,7 @@ class NotaryNode:
         while True:
             try:
                 i += 1
-                if i == 15:
+                if i == 20:
                     print(f"Looks like there might be an issue with loading {coin}...")
                     print(f"We'll try and start it again, but  you need it here are the launch params to do it manually:")
                     print(' '.join(self.get_launch_params(coin)))
@@ -159,7 +159,7 @@ class NotaryNode:
         while True:
             try:
                 i += 1
-                if i == 15:
+                if i == 20:
                     print(f"Looks like there might be an issue with stopping {coin}...")
                     # TODO: Send an alert if this happens
                     return False
@@ -182,7 +182,7 @@ class NotaryNode:
         r = requests.get(url)
         utxos_data = r.json()["results"]["utxos"]
         utxos = sorted(utxos_data, key=lambda d: d['amount'], reverse=True) 
-
+        print(f"Biggest UTXO: {utxos[0]}")
         inputs = []
         value = 0
         remaining_inputs = len(utxos)
@@ -190,8 +190,8 @@ class NotaryNode:
         print(f"consolidating {coin}...")
         if coin == "KMD": address = SWEEP_ADDRESS
         else: address = self.address
-        if len(utxos) > 50 and rpc.getbalance() > 0.1:
-            print(f"Less than 50 UTXOs to consolidate {coin}")
+        if len(utxos) > 20 and rpc.getbalance() > 0.01:
+            print(f"Less than 20 UTXOs to consolidate {coin}")
             return
         for utxo in utxos:
             if utxo["confirmations"] < 100:
