@@ -243,6 +243,15 @@ class NotaryNode:
         except Exception as e:
             print(e)
 
+    def rm_komodoevents(self, coin):
+        data_dir = self.coins_data[coin]["wallet"].replace("wallet.dat", "")
+
+        for filename in ["komodoevents", "komodoevents.ind"]:
+            try:
+                os.remove(f"{data_dir}{filename}")
+            except Exception as e:
+                print(e)
+
 
 
 
@@ -289,6 +298,7 @@ if __name__ == '__main__':
                 if node.get_blockheight(coin):
                     node.stop(coin)
                 node.move_wallet(coin)
+                node.rm_komodoevents(coin)
                 node.start(coin)
                 node.import_pk(coin)
                 node.consolidate(coin)
