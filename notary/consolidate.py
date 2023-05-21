@@ -197,14 +197,14 @@ class NotaryNode:
             if utxo["confirmations"] < 100:
                 remaining_inputs -= 1
                 continue
+            remaining_inputs -= 1
             input_utxo = {"txid": utxo["txid"], "vout": utxo["vout"]}
             inputs.append(input_utxo)
             value += utxo["amount"]
             print(f"inputs: {len(inputs)}")
             print(f"value: {value}")
             print(f"remaining_inputs: {remaining_inputs}")
-            if len(inputs) > merge_amount or len(inputs) == remaining_inputs:
-                remaining_inputs -= merge_amount
+            if len(inputs) > merge_amount or remaining_inputs < 1:
                 vouts = {address: int(value)-1}
                 if coin == "KMD":
                     if int(value) > 0.1:
