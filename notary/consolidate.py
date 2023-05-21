@@ -141,7 +141,8 @@ class NotaryNode:
                 block_height = self.get_blockheight(coin)
                 if block_height:
                     return True
-            except:
+            except Exception as e:
+                print(e)
                 pass
 
     def stop(self, coin):
@@ -167,7 +168,8 @@ class NotaryNode:
                 print(f"Waiting for {coin} daemon to stop...")
                 time.sleep(15)
                 block_height = self.get_blockheight(coin)
-            except requests.exceptions.RequestException as e:
+            except Exception as e:
+                print(e)
                 return True
         time.sleep(10)
 
