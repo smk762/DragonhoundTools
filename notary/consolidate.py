@@ -29,7 +29,7 @@ class NotaryNode:
     def __init__(self):
         self.home = os.path.expanduser('~')
         self.assetchains = self.get_assetchains()
-        self.coins = [i["ac_name"] for i in self.assetchains] 
+        self.coins = [i["ac_name"] for i in self.assetchains]
         self.coins.append("KMD")
         self.coins_data = self.calc_coins_data()
         self.iguana_dir = f"{self.home}/dPoW/iguana"
@@ -53,7 +53,8 @@ class NotaryNode:
                 coins_data.update({coin: {}})
             coins_data[coin].update({
                 "height": self.get_blockheight(coin),
-                "wallet": wallet
+                "wallet": wallet,
+                "oldest_utxo_height": None
             })
         return coins_data
 
@@ -77,7 +78,10 @@ class NotaryNode:
         height = self.coins_data[coin]["height"]
         if not height:
             height = self.get_blockheight(coin)
-        return rpc.importprivkey(NN_PRIVKEY, "", True, height)
+        try:
+            return rpc.importprivkey(NN_PRIVKEY, "", True, height)
+        except Exception as e:
+            print(f"PRIVKEY IMPORT FAILED!: {coin} [{e}]")
 
     def format_param(self, param, value):
         return '-' + param + '=' + value
@@ -133,7 +137,7 @@ class NotaryNode:
                 if i == 20:
                     print(f"Looks like there might be an issue with loading {coin}...")
                     print(f"We'll try and start it again, but  you need it here are the launch params to do it manually:")
-                    print(' '.join(self.get_launch_params(coin)))
+                    print(self.launch_params[coin])
                     # TODO: Send an alert if this happens
                     return False
                 print(f"Waiting for {coin} daemon to restart...")
@@ -181,7 +185,9 @@ class NotaryNode:
         url = f"http://stats.kmd.io/api/tools/pubkey_utxos/?coin={coin}&pubkey={self.pubkey}"
         r = requests.get(url)
         utxos_data = r.json()["results"]["utxos"]
-        utxos = sorted(utxos_data, key=lambda d: d['amount'], reverse=True) 
+        utxos_by_height = sorted(utxos_data, key=lambda d: d['height'], reverse=True)
+        oldest_uxto = utxos_by_height[0]["height"]
+        utxos = sorted(utxos_data, key=lambda d: d['amount'], reverse=True)
         print(f"Biggest UTXO: {utxos[0]}")
         inputs = []
         value = 0
@@ -194,27 +200,27 @@ class NotaryNode:
             print(f"Less than 20 UTXOs to consolidate {coin}")
             return
         for utxo in utxos:
-            if utxo["confirmations"] < 100:
+            if utxo["confirmations"] < 100 or oldest_uxto > coins_data[coin]["height"] - 100:
                 remaining_inputs -= 1
                 continue
             remaining_inputs -= 1
             input_utxo = {"txid": utxo["txid"], "vout": utxo["vout"]}
             inputs.append(input_utxo)
-            value += utxo["amount"]
-            print(f"inputs: {len(inputs)}")
-            print(f"value: {value}")
-            print(f"remaining_inputs: {remaining_inputs}")
+            value += utxo["satoshis"]
+            #print(f"inputs: {len(inputs)}")
+            #print(f"value: {value}")
+            #print(f"remaining_inputs: {remaining_inputs}")
             if len(inputs) > merge_amount or remaining_inputs < 1:
-                vouts = {address: int(value)-1}
+                value = value/100000000
                 if coin == "KMD":
-                    if int(value) > 0.1:
+                    if value > 0.1:
                         vouts.update({
-                            SWEEP_ADDRESS: int(value) - 0.1,
+                            SWEEP_ADDRESS: value - 0.1,
                             self.address: 0.1
                         })
                     else: return
                 else:
-                    vouts = {self.address: int(value)}
+                    vouts = {self.address: value}
                 try:
                     rawhex = rpc.createrawtransaction(inputs, vouts)
                     #print(f"rawhex: {rawhex}")
@@ -273,7 +279,7 @@ if __name__ == '__main__':
     print(f"Pubkey: {node.pubkey}")
     print(f"Address: {node.address}")
     #print(f"Coins: {node.coins}")
-    #print(f"Coins data: {node.coins_data}") 
+    #print(f"Coins data: {node.coins_data}")
 
 
     if len(sys.argv) == 2:
@@ -304,7 +310,10 @@ if __name__ == '__main__':
                 node.rm_komodoevents(coin)
                 node.start(coin)
                 node.import_pk(coin)
-                node.consolidate(coin)
+                try:
+                    node.consolidate(coin)
+                except Exception as e:
+                    print(e)
         else:
             print("Invalid option. Use 'backup_wallets', 'stop', 'import', or 'refresh'")
     else:
