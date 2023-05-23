@@ -12,6 +12,7 @@ from bitcoin.core import CoreMainParams
 from bitcoin.wallet import P2PKHBitcoinAddress
 from dotenv import load_dotenv
 import lib_rpc
+from logger import logger
 
 load_dotenv()
 
@@ -84,7 +85,7 @@ class NotaryNode:
 
     def write_coins_data(self, coins_data):
         with open("coins_data.json", "w") as f:
-            f.write(json.dumps(coins_data, indent=4))
+            json.dump(coins_data, f, indent=4)
 
     def read_coins_data(self):
         with open("coins_data.json", "r") as f:
@@ -107,21 +108,21 @@ class NotaryNode:
     def start(self, coin):
         rpc = lib_rpc.def_credentials(coin)
         params = self.launch_params[coin]
-        print(params)
+        logger.debug(params)
         # check if already running
         try:
             block_height = self.get_blockheight(coin)
             if block_height:
-                print(f"{coin} daemon is already running.")
+                logger.debug(f"{coin} daemon is already running.")
                 return
         except Exception as e:
-            print(e)
+            logger.error(e)
         launch = f"{self.home}/komodo/src/komodod {params} -whitelistaddress={self.address} -pubkey={self.pubkey}"
         log_output = open(f"{self.log_path}/{coin}_daemon.log",'w+')
         subprocess.Popen(launch.split(" "), stdout=log_output, stderr=log_output, universal_newlines=True)
         time.sleep(3)
-        print('{:^60}'.format( f"{coin} daemon starting."))
-        print('{:^60}'.format( f"Use 'tail -f {coin}_daemon.log' for mm2 console messages."))
+        logger.info('{:^60}'.format( f"{coin} daemon starting."))
+        logger.info('{:^60}'.format( f"Use 'tail -f {coin}_daemon.log' for mm2 console messages."))
         self.wait_for_start(coin)
 
     def wait_for_start(self, coin):
@@ -131,18 +132,18 @@ class NotaryNode:
             try:
                 i += 1
                 if i == 20:
-                    print(f"Looks like there might be an issue with loading {coin}...")
-                    print(f"We'll try and start it again, but  you need it here are the launch params to do it manually:")
-                    print(' '.join(self.get_launch_params(coin)))
+                    logger.info(f"Looks like there might be an issue with loading {coin}...")
+                    logger.info(f"We'll try and start it again, but  you need it here are the launch params to do it manually:")
+                    logger.info(' '.join(self.get_launch_params(coin)))
                     # TODO: Send an alert if this happens
                     return False
-                print(f"Waiting for {coin} daemon to restart...")
+                logger.debug(f"Waiting for {coin} daemon to restart...")
                 time.sleep(30)
                 block_height = self.get_blockheight(coin)
                 if block_height:
                     return True
             except Exception as e:
-                print(e)
+                logger.error(e)
                 pass
 
     def stop(self, coin):
@@ -151,7 +152,7 @@ class NotaryNode:
             rpc.stop()
             self.wait_for_stop(coin)
         except Exception as e:
-            print(e)
+            logger.error(e)
 
     def wait_for_stop(self, coin):
         i = 0
@@ -160,17 +161,17 @@ class NotaryNode:
             try:
                 i += 1
                 if i == 20:
-                    print(f"Looks like there might be an issue with stopping {coin}...")
+                    logger.warning(f"Looks like there might be an issue with stopping {coin}...")
                     # TODO: Send an alert if this happens
                     return False
 
-                print(f"Waiting for {coin} daemon to stop...")
+                logger.debug(f"Waiting for {coin} daemon to stop...")
                 time.sleep(15)
                 block_height = self.get_blockheight(coin)
                 if not block_height:
                     return True
             except Exception as e:
-                print(e)
+                logger.error(e)
                 return True
         time.sleep(10)
 
@@ -182,59 +183,59 @@ class NotaryNode:
         r = requests.get(url)
         utxos_data = r.json()["results"]["utxos"]
         utxos = sorted(utxos_data, key=lambda d: d['amount'], reverse=True) 
-        print(f"Biggest UTXO: {utxos[0]}")
+        logger.info(f"Biggest UTXO: {utxos[0]}")
         inputs = []
         value = 0
         remaining_inputs = len(utxos)
         merge_amount = 800
-        print(f"consolidating {coin}...")
+        logger.debug(f"consolidating {coin}...")
         if coin == "KMD": address = SWEEP_ADDRESS
         else: address = self.address
         if len(utxos) > 20 and rpc.getbalance() > 0.01:
-            print(f"Less than 20 UTXOs to consolidate {coin}")
+            logger.debug(f"Less than 20 UTXOs to consolidate {coin}")
             return
         for utxo in utxos:
-            if utxo["confirmations"] < 100:
+            if utxo["confirmations"] < 100 or oldest_uxto > self.coins_data[coin]["height"] - 100:
                 remaining_inputs -= 1
                 continue
             remaining_inputs -= 1
             input_utxo = {"txid": utxo["txid"], "vout": utxo["vout"]}
             inputs.append(input_utxo)
             value += utxo["amount"]
-            print(f"inputs: {len(inputs)}")
-            print(f"value: {value}")
-            print(f"remaining_inputs: {remaining_inputs}")
+            logger.debug(f"inputs: {len(inputs)}")
+            logger.debug(f"value: {value}")
+            logger.debug(f"remaining_inputs: {remaining_inputs}")
             if len(inputs) > merge_amount or remaining_inputs < 1:
                 vouts = {address: int(value)-1}
                 if coin == "KMD":
                     if int(value) > 0.1:
-                        vouts.update({
+                        vouts = {
                             SWEEP_ADDRESS: int(value) - 0.1,
                             self.address: 0.1
-                        })
+                        }
                     else: return
                 else:
                     vouts = {self.address: int(value)}
                 try:
                     rawhex = rpc.createrawtransaction(inputs, vouts)
-                    #print(f"rawhex: {rawhex}")
+                    #logger.debug(f"rawhex: {rawhex}")
                     time.sleep(0.1)
                     signedhex = rpc.signrawtransaction(rawhex)
-                    #print(f"signedhex: {signedhex}")
+                    #logger.debug(f"signedhex: {signedhex}")
                     time.sleep(0.1)
                     txid = rpc.sendrawtransaction(signedhex["hex"])
-                    print(f"Sent {value} to {address}")
-                    print(f"txid: {txid}")
+                    logger.info(f"Sent {value} to {address}")
+                    logger.info(f"txid: {txid}")
                     time.sleep(0.1)
                 except Exception as e:
-                    print(e)
-                    print(utxo)
-                    print(vouts)
+                    logger.error(e)
+                    logger.debug(utxo)
+                    logger.debug(vouts)
 
                 inputs = []
                 value = 0
                 if remaining_inputs < 0: remaining_inputs = 0
-                print(f"{coin} has {remaining_inputs} remaining utxos to process")
+                logger.info(f"{coin} has {remaining_inputs} remaining utxos to process")
                 time.sleep(4)
 
     def move_wallet(self, coin):
@@ -244,7 +245,7 @@ class NotaryNode:
             wallet_bk = wallet.replace("wallet.dat", f"wallet_{now}.dat")
             os.rename(wallet, wallet_bk)
         except Exception as e:
-            print(e)
+            logger.error(e)
 
     def rm_komodoevents(self, coin):
         data_dir = self.coins_data[coin]["wallet"].replace("wallet.dat", "")
@@ -253,7 +254,7 @@ class NotaryNode:
             try:
                 os.remove(f"{data_dir}{filename}")
             except Exception as e:
-                print(e)
+                logger.error(e)
 
 
 
@@ -270,10 +271,10 @@ if __name__ == '__main__':
     # - all: Consolidates funds, sweeps KMD
 
     node = NotaryNode()
-    print(f"Pubkey: {node.pubkey}")
-    print(f"Address: {node.address}")
-    #print(f"Coins: {node.coins}")
-    #print(f"Coins data: {node.coins_data}") 
+    logger.info(f"Pubkey: {node.pubkey}")
+    logger.info(f"Address: {node.address}")
+    #logger.info(f"Coins: {node.coins}")
+    #logger.info(f"Coins data: {node.coins_data}") 
 
 
     if len(sys.argv) == 2:
@@ -296,7 +297,7 @@ if __name__ == '__main__':
 
         elif sys.argv[1] == "refresh":
             for coin in node.coins:
-                print(f"Refreshing {coin}...")
+                logger.info(f"Refreshing {coin}...")
 
                 if node.get_blockheight(coin):
                     node.stop(coin)
@@ -306,11 +307,11 @@ if __name__ == '__main__':
                 node.import_pk(coin)
                 node.consolidate(coin)
         else:
-            print("Invalid option. Use 'backup_wallets', 'stop', 'import', or 'refresh'")
+            logger.warning("Invalid option. Use 'backup_wallets', 'stop', 'import', or 'refresh'")
     else:
         for coin in node.coins:
-            print(f"Consolidating {coin}...")
+            logger.info(f"Consolidating {coin}...")
             try:
                 node.consolidate(coin)
             except Exception as e:
-                print(e)
+                logger.error(e)
