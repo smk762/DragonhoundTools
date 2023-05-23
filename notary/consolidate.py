@@ -190,7 +190,8 @@ class NotaryNode:
         utxos = sorted(utxos_data, key=lambda d: d['amount'], reverse=True) 
         logger.debug(f"Biggest UTXO: {utxos[0]}")
         utxos_by_height = sorted(utxos_data, key=lambda d: d['height'], reverse=True)
-        logger.debug(f"Oldest UTXO: {utxos_by_height[0]}")
+        oldest_uxto = utxos_by_height[0]["height"]
+        logger.debug(f"Oldest UTXO height: {oldest_uxto}")
 
         inputs = []
         value = 0
@@ -217,10 +218,10 @@ class NotaryNode:
             if len(inputs) > merge_amount or remaining_inputs < 1:
                 value = value/100000000
                 if coin == "KMD":
-                    if value > 0.1:
+                    if value > 1:
                         vouts = {
-                            SWEEP_ADDRESS: value - 0.1,
-                            self.address: 0.1
+                            SWEEP_ADDRESS: value - 1,
+                            self.address: 1
                         }
                     else: return
                 else:
@@ -294,15 +295,17 @@ if __name__ == '__main__':
 
         elif sys.argv[1] == "stop":
             for coin in node.coins:
-                address = node.stop(coin)
+                node.stop(coin)
 
         elif sys.argv[1] == "start":
             for coin in node.coins:
-                address = node.start(coin)
+                node.start(coin)
 
         elif sys.argv[1] == "import":
             for coin in node.coins:
                 address = node.import_pk(coin)
+                logger.info(f"{coin}: Imported {address}")
+
 
         elif sys.argv[1] == "refresh":
             for coin in node.coins:
