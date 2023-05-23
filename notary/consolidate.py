@@ -190,8 +190,6 @@ class NotaryNode:
         utxos = sorted(utxos_data, key=lambda d: d['amount'], reverse=True) 
         logger.debug(f"Biggest UTXO: {utxos[0]}")
         utxos_by_height = sorted(utxos_data, key=lambda d: d['height'], reverse=True)
-        oldest_uxto = utxos_by_height[0]["height"]
-        logger.debug(f"Oldest UTXO height: {oldest_uxto}")
 
         inputs = []
         value = 0
@@ -204,7 +202,7 @@ class NotaryNode:
             logger.debug(f"Less than 20 UTXOs to consolidate {coin}")
             return
         for utxo in utxos:
-            if utxo["confirmations"] < 100 or oldest_uxto > self.coins_data[coin]["height"] - 100:
+            if utxo["confirmations"] < 100:
                 remaining_inputs -= 1
                 continue
             remaining_inputs -= 1
