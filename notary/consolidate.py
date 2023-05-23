@@ -189,7 +189,6 @@ class NotaryNode:
 
         utxos = sorted(utxos_data, key=lambda d: d['amount'], reverse=True) 
         logger.debug(f"Biggest UTXO: {utxos[0]}")
-        utxos_by_height = sorted(utxos_data, key=lambda d: d['height'], reverse=True)
 
         inputs = []
         value = 0
