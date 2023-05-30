@@ -230,9 +230,22 @@ class NotaryNode:
         address = self.get_address(coin)
 
         # get a utxo
-        url = f"http://stats.kmd.io/api/tools/pubkey_utxos/?coin={coin}&pubkey={self.pubkey}"
-        r = requests.get(url)
-        utxos_data = r.json()["results"]["utxos"]
+        try:
+            url = f"http://stats.kmd.io/api/tools/pubkey_utxos/?coin={coin}&pubkey={self.pubkey}"
+            r = requests.get(url)
+            utxos_data = r.json()["results"]["utxos"]
+        except Exception as e:
+            try:
+                utxos_data = rpc.listunspent()
+            except Exception as e:
+                logger.error(f"Error getting UTXOs for {coin}")
+                logger.error(utxos_data)
+                logger.error(e)
+                return
+            logger.error(f"Error getting UTXOs for {coin}")
+            logger.error(e)
+            logger.error(url)
+            return
 
         utxos = sorted(utxos_data, key=lambda d: d['amount'], reverse=True) 
         if len(utxos) > 0:
@@ -254,6 +267,9 @@ class NotaryNode:
         
         logger.info(f"consolidating {coin}...")
         for utxo in utxos:
+            # for rpc resp data
+            if "satoshis" not in utxo:
+                utxo["satoshis"] = utxo["amount"] * 100000000
             if utxo["confirmations"] < 100:
                 skipped_inputs += 1
                 remaining_inputs -= 1
