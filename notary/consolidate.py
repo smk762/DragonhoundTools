@@ -72,7 +72,6 @@ class NotaryNode:
         if not os.path.exists(self.log_path):
             os.makedirs(self.log_path)
         self.pubkey = self.get_pubkey()
-        
 
     def get_assetchains(self):
         with open(f"{self.home}/dPoW/iguana/assetchains.json") as file:
@@ -265,7 +264,7 @@ class NotaryNode:
         if len(utxos) < 20 and rpc.getbalance() > 0.001:
             logger.debug(f"< 20 UTXOs to consolidate {coin}, skipping")
             return
-        
+
         logger.info(f"consolidating {coin}...")
         for utxo in utxos:
             # for rpc resp data
@@ -287,23 +286,28 @@ class NotaryNode:
             value += utxo["satoshis"]
             if len(inputs) > merge_amount or remaining_inputs < 1:
                 value = round(value/100000000, 8)
-                if coin == "KMD":
+                if coin == "KMD" and const.NODE == "Main":
                     if value > 1:
                         vouts = {
                             const.SWEEP_ADDR: value - 1,
                             address: 1
                         }
-                    else: return
-                elif coin in ["EMC", "CHIPS"]:
-                    # AYA signs differently
-                    vouts = {address: value - 0.0001}
+                    else:
+                        logger.debug(f"Skipping {coin} consolidation, not enough funds")
+                        return
+                elif coin in ["EMC", "CHIPS", "AYA"]:
+                    # Got -26 error if not reducing amount
+                    vouts = {address: value - 0.001}
                 else:
                     vouts = {address: value}
                 try:
                     rawhex = rpc.createrawtransaction(inputs, vouts)
                     #logger.debug(f"rawhex: {rawhex}")
                     time.sleep(0.1)
-                    signedhex = rpc.signrawtransaction(rawhex)
+                    if coin in ["AYA"]:
+                        signedhex = rpc.signrawtransactionwithwallet(rawhex)
+                    else:
+                        signedhex = rpc.signrawtransaction(rawhex)
                     #logger.debug(f"signedhex: {signedhex}")
                     time.sleep(0.1)
                     txid = rpc.sendrawtransaction(signedhex["hex"])
