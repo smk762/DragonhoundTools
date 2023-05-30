@@ -236,11 +236,11 @@ class NotaryNode:
 
         utxos = sorted(utxos_data, key=lambda d: d['amount'], reverse=True) 
         if len(utxos) > 0:
-            logger.debug(f"Biggest {coin} UTXO: {utxos[0]}")
-            logger.debug(f"UTXOs for {coin}: {len(utxos)}")
+            logger.info(f"Biggest {coin} UTXO: {utxos[0]['amount']}")
+            logger.info(f"UTXOs for {coin}: {len(utxos)}")
         else:
             logger.debug(f"No UTXOs found for {coin}")
-            logger.debug(utxos_data)
+            #logger.debug(utxos_data)
             logger.debug(url)
 
         inputs = []
@@ -252,7 +252,7 @@ class NotaryNode:
             logger.debug(f"Less than 20 UTXOs to consolidate {coin}, skipping")
             return
         
-        logger.debug(f"consolidating {coin}...")
+        logger.info(f"consolidating {coin}...")
         for utxo in utxos:
             if utxo["confirmations"] < 100:
                 skipped_inputs += 1
@@ -290,8 +290,8 @@ class NotaryNode:
                     time.sleep(0.1)
                 except Exception as e:
                     logger.error(e)
-                    logger.debug(utxo)
-                    logger.debug(vouts)
+                    #logger.debug(utxo)
+                    #logger.debug(vouts)
 
                 inputs = []
                 value = 0
