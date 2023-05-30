@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+import sys
+import requests
 import hashlib
 import binascii
 import base58
@@ -45,9 +47,34 @@ def WIF_compressed(byte, raw_privkey):
     WIF = base58.b58encode(binascii.unhexlify(final_key))
     return(WIF.decode("utf-8"))
 
+def get_wiftype(coin):
+    url = "https://stats.kmd.io/api/info/base_58/"
+    params = requests.get(url).json()["results"]
+    if coin not in params:
+        print(f"Coin {coin} not found in bas 58 params at {url}")
+        sys.exit(1)
+    else:
+        return params[coin]["wiftype"]
 
-raw_privkey = WIFdecode("Uw8FWra4tCu3LYYosVDjLHkbkKuuRgXEo6yy6bdf8w4S7sjzsPwd") #modo0 2021testnet
+def int_to_hexstr(x):
+    if x == 0: return '00'
+    hex_chars = '0123456789ABCDEF'
+    hex_string = ''
+    while x > 0:
+        r = x % 16
+        hex_string = hex_chars[r] + hex_string
+        x = x // 16
+    return hex_string
 
+if __name__ == '__main__':
+    if len(sys.argv[1]) != 3:
+        print('Usage: ./wif_convert.py <coin> <wif>')
+        sys.exit(1)
+    else:
+        coin = sys.argv[1]
+        wif = sys.argv[2]
+        raw_privkey = WIFdecode(wif)
+        wiftype = get_wiftype(coin)
+        wiftype_hex = int_to_hexstr(wiftype)
+        print(WIF_compressed(wiftype_hex, raw_privkey))
 
-print('KMD: ', WIF_compressed('bc', raw_privkey))
-print('LTC: ', WIF_compressed('b0', raw_privkey))
