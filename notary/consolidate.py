@@ -294,6 +294,9 @@ class NotaryNode:
                             address: 1
                         }
                     else: return
+                elif coin in ["EMC", "CHIPS"]:
+                    # AYA signs differently
+                    vouts = {address: value - 0.0001}
                 else:
                     vouts = {address: value}
                 try:
