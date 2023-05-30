@@ -312,7 +312,7 @@ if __name__ == '__main__':
 
     node = NotaryNode()
     logger.info(f"Pubkey: {node.pubkey}")
-    logger.info(f"KMD Address: {node.get_address("KMD")}")
+    logger.info(f"KMD Address: {node.get_address('KMD')}")
     #logger.info(f"Coins: {node.coins}")
     #logger.info(f"Coins data: {node.coins_data}") 
 

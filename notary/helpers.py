@@ -63,13 +63,12 @@ def get_launch_params():
         if i == "KMD":
             launch_params[i] = f"{launch_params[i]} -minrelaytxfee=0.000035 -opretmintxfee=0.004 -notary={const.HOME}/.litecoin/litecoin.conf"
         if i == "KMD" or const.NODE == "Main":
-            if const.SWEEP_ADDR not in const.WHITELIST_ADDRESSES:
-                launch_params[i] = f"{launch_params[i]} -whitelistaddress={const.SWEEP_ADDR}"
-            if const.NN_ADDR not in const.WHITELIST_ADDRESSES:
-                launch_params[i] = f"{launch_params[i]} -whitelistaddress={const.NN_ADDR}"
+            launch_params[i] = f"{launch_params[i]} -whitelistaddress={const.SWEEP_ADDR}"
+            launch_params[i] = f"{launch_params[i]} -whitelistaddress={const.NN_ADDR}"
             if const.WHITELIST_ADDRESSES:
                 for x in const.WHITELIST_ADDRESSES:
-                    launch_params[i] = f"{launch_params[i]} -whitelistaddress={x}"
+                    if x not in [const.SWEEP_ADDR, const.NN_ADDR]:
+                        launch_params[i] = f"{launch_params[i]} -whitelistaddress={x}"
 
     return launch_params
 
