@@ -237,7 +237,7 @@ class NotaryNode:
         utxos = sorted(utxos_data, key=lambda d: d['amount'], reverse=True) 
         if len(utxos) > 0:
             logger.info(f"Biggest {coin} UTXO: {utxos[0]['amount']}")
-            logger.info(f"UTXOs for {coin}: {len(utxos)}")
+            logger.info(f"{len(utxos)} {coin} UTXOs")
         else:
             logger.debug(f"No UTXOs found for {coin}")
             #logger.debug(utxos_data)
@@ -249,7 +249,7 @@ class NotaryNode:
         remaining_inputs = len(utxos)
         merge_amount = 800
         if len(utxos) < 20 and rpc.getbalance() > 0.001:
-            logger.debug(f"Less than 20 UTXOs to consolidate {coin}, skipping")
+            logger.debug(f"< 20 UTXOs to consolidate {coin}, skipping")
             return
         
         logger.info(f"consolidating {coin}...")
@@ -296,10 +296,10 @@ class NotaryNode:
                 inputs = []
                 value = 0
                 if remaining_inputs < 0: remaining_inputs = 0
-                logger.info(f"{coin} has {remaining_inputs} remaining utxos to process")
+                logger.info(f"{remaining_inputs} remaining {coin} utxos to process")
                 time.sleep(4)
         if skipped_inputs > 0:
-            logger.info(f"{skipped_inputs} {coin} UTXOs skipped due to < 100 confs")
+            logger.debug(f"{skipped_inputs} {coin} UTXOs skipped due to < 100 confs")
 
     def move_wallet(self, coin):
         try:
@@ -375,7 +375,7 @@ if __name__ == '__main__':
             logger.warning("Invalid option. Use 'backup_wallets', 'stop', 'import', or 'refresh'")
     else:
         for coin in node.coins:
-            logger.info(f"Consolidating {coin}...")
+            logger.info(f"\nConsolidating {coin}...")
             try:
                 node.consolidate(coin)
             except Exception as e:
