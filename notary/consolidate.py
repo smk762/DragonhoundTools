@@ -10,10 +10,12 @@ import bitcoin # pip3 install python-bitcoinlib
 from bitcoin.core import x
 from bitcoin.core import CoreMainParams
 from bitcoin.wallet import P2PKHBitcoinAddress
-import lib_rpc
-import iguana
 import const
+import iguana
+import lib_rpc
+import helpers
 from logger import logger
+
 
 class KMD_CoinParams(CoreMainParams):
     MESSAGE_START = b'\x24\xe9\x27\x64'
@@ -22,11 +24,47 @@ class KMD_CoinParams(CoreMainParams):
                        'SCRIPT_ADDR': 85,
                        'SECRET_KEY': 188}
 
+
+class LTC_CoinParams(CoreMainParams):
+    MESSAGE_START = b'\x24\xe9\x27\x64'
+    DEFAULT_PORT = 7770
+    BASE58_PREFIXES = {'PUBKEY_ADDR': 48,
+                       'SCRIPT_ADDR': 5,
+                       'SECRET_KEY': 176}
+
+
+class MIL_CoinParams(CoreMainParams):
+    MESSAGE_START = b'\x24\xe9\x27\x64'
+    DEFAULT_PORT = 7770
+    BASE58_PREFIXES = {'PUBKEY_ADDR': 50,
+                       'SCRIPT_ADDR': 196,
+                       'SECRET_KEY': 239}
+
+
+class AYA_CoinParams(CoreMainParams):
+    MESSAGE_START = b'\x24\xe9\x27\x64'
+    DEFAULT_PORT = 7770
+    BASE58_PREFIXES = {'PUBKEY_ADDR': 23,
+                       'SCRIPT_ADDR': 5,
+                       'SECRET_KEY': 176}
+
+
+class EMC_CoinParams(CoreMainParams):
+    MESSAGE_START = b'\x24\xe9\x27\x64'
+    DEFAULT_PORT = 7770
+    BASE58_PREFIXES = {'PUBKEY_ADDR': 33,
+                       'SCRIPT_ADDR': 5,
+                       'SECRET_KEY': 176}
+
 class NotaryNode:
     def __init__(self):
         self.home = os.path.expanduser('~')
         self.assetchains = self.get_assetchains()
-        self.coins = [i["ac_name"] for i in self.assetchains]
+        self.launch_params = helpers.get_launch_params()
+        if const.NODE == "Main":
+            self.coins = [i["ac_name"] for i in self.assetchains]
+        else:
+            self.coins = ["MCL", "VRSC", "EMC", "MIL", "TOKEL", "AYA", "CHIPS"]
         self.coins.append("KMD")
         self.coins_data = self.calc_coins_data()
         self.iguana_dir = f"{self.home}/dPoW/iguana"
@@ -35,7 +73,6 @@ class NotaryNode:
             os.makedirs(self.log_path)
         self.pubkey = self.get_pubkey()
         self.address = self.get_address(self.pubkey)
-        self.launch_params = self.get_launch_params()
 
     def get_assetchains(self):
         with open(f"{self.home}/dPoW/iguana/assetchains.json") as file:
@@ -45,6 +82,14 @@ class NotaryNode:
         coins_data = {}
         for coin in self.coins:
             if coin == "KMD": wallet = f"{self.home}/.komodo/wallet.dat"
+            elif coin == "MIL":
+                wallet = f"{self.home}/.mil/{coin}/wallet.dat"
+            elif coin == "CHIPS":
+                wallet = f"{self.home}/.chips/{coin}/wallet.dat"
+            elif coin == "AYA":
+                wallet = f"{self.home}/.aryacoin/{coin}/wallet.dat"
+            elif coin == "EMC":
+                wallet = f"{self.home}/.einsteinium/{coin}/wallet.dat"
             else: wallet = f"{self.home}/.komodo/{coin}/wallet.dat"
             if coin not in coins_data:
                 coins_data.update({coin: {}})
@@ -60,7 +105,16 @@ class NotaryNode:
             return f.read().replace("pubkey=", "").strip()
 
     def get_address(self, pubkey):
-        bitcoin.params = KMD_CoinParams
+        if coin == "MIL":
+            bitcoin.params = MIL_CoinParams
+        elif coin == "LTC":
+            bitcoin.params = LTC_CoinParams
+        elif coin == "AYA":
+            bitcoin.params = AYA_CoinParams
+        elif coin == "EMC":
+            bitcoin.params = EMC_CoinParams
+        else:
+            bitcoin.params = KMD_CoinParams
         return str(P2PKHBitcoinAddress.from_pubkey(x(pubkey)))
 
     def get_blockheight(self, coin):
@@ -73,10 +127,11 @@ class NotaryNode:
     def import_pk(self, coin):
         rpc = lib_rpc.def_credentials(coin)
         height = self.coins_data[coin]["height"]
+        wif = helpers.wif_convert(coin, const.NN_PRIVKEY)
         if not height:
             height = self.get_blockheight(coin)
         try:
-            return rpc.importprivkey(const.NN_PRIVKEY, "", True, height)
+            return rpc.importprivkey(wif, "", True, height)
         except Exception as e:
             print(f"PRIVKEY IMPORT FAILED!: {coin} [{e}]")
 
@@ -90,20 +145,6 @@ class NotaryNode:
     def read_coins_data(self):
         with open("coins_data.json", "r") as f:
             return json.loads(f)
-
-    def get_launch_params(self):
-        launch_params = {}
-        for i in self.assetchains:
-            params = []
-            for param, value in i.items():
-                if isinstance(value, list):
-                    for dupe_value in value:
-                        params.append(self.format_param(param, dupe_value))
-                else:
-                    params.append(self.format_param(param, value))
-            launch_params.update({i["ac_name"]: " ".join(params)})
-        launch_params.update({"KMD": f"-minrelaytxfee=0.000035 -opretmintxfee=0.004 -notary={self.home}/.litecoin/litecoin.conf"})
-        return launch_params
 
     def start(self, coin):
         rpc = lib_rpc.def_credentials(coin)
@@ -191,9 +232,7 @@ class NotaryNode:
         remaining_inputs = len(utxos)
         merge_amount = 800
         logger.debug(f"consolidating {coin}...")
-        if coin == "KMD": address = const.SWEEP_ADDRESS
-        else: address = self.address
-        if len(utxos) > 20 and rpc.getbalance() > 0.01:
+        if len(utxos) < 20 and rpc.getbalance() > 0.001:
             logger.debug(f"Less than 20 UTXOs to consolidate {coin}")
             return
         for utxo in utxos:
@@ -213,7 +252,7 @@ class NotaryNode:
                 if coin == "KMD":
                     if value > 1:
                         vouts = {
-                            const.SWEEP_ADDRESS: value - 1,
+                            const.SWEEP_ADDR: value - 1,
                             self.address: 1
                         }
                     else: return
@@ -227,7 +266,7 @@ class NotaryNode:
                     #logger.debug(f"signedhex: {signedhex}")
                     time.sleep(0.1)
                     txid = rpc.sendrawtransaction(signedhex["hex"])
-                    logger.info(f"Sent {value} to {address}")
+                    logger.info(f"Sent {value} to {self.address}")
                     logger.info(f"txid: {txid}")
                     time.sleep(0.1)
                 except Exception as e:
@@ -258,9 +297,6 @@ class NotaryNode:
                 os.remove(f"{data_dir}{filename}")
             except Exception as e:
                 logger.error(e)
-
-
-
 
 
 if __name__ == '__main__':
