@@ -235,16 +235,18 @@ class NotaryNode:
             r = requests.get(url)
             utxos_data = r.json()["results"]["utxos"]
         except Exception as e:
+            logger.error(f"Error getting UTXOs for {coin}")
+            logger.error(e)
+            logger.error(url)
+            utxos_data = []
+
+        if len(utxos_data) == 0:
             try:
                 utxos_data = rpc.listunspent()
             except Exception as e:
                 logger.error(f"Error getting UTXOs for {coin}")
                 logger.error(e)
                 return
-            logger.error(f"Error getting UTXOs for {coin}")
-            logger.error(e)
-            logger.error(url)
-
 
         utxos = sorted(utxos_data, key=lambda d: d['amount'], reverse=True) 
         if len(utxos) > 0:
@@ -284,7 +286,7 @@ class NotaryNode:
             logger.debug(f"remaining_inputs: {remaining_inputs}")
             value += utxo["satoshis"]
             if len(inputs) > merge_amount or remaining_inputs < 1:
-                value = value/100000000
+                value = round(value/100000000, 8)
                 if coin == "KMD":
                     if value > 1:
                         vouts = {
