@@ -272,8 +272,10 @@ class NotaryNode:
             if utxo["confirmations"] < 100:
                 skipped_inputs += 1
                 remaining_inputs -= 1
-                continue
-            remaining_inputs -= 1
+                if remaining_inputs > 0:
+                    continue
+            else:
+                remaining_inputs -= 1
             input_utxo = {"txid": utxo["txid"], "vout": utxo["vout"]}
             inputs.append(input_utxo)
 
