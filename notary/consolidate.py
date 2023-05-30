@@ -236,21 +236,26 @@ class NotaryNode:
 
         utxos = sorted(utxos_data, key=lambda d: d['amount'], reverse=True) 
         if len(utxos) > 0:
-            logger.debug(f"Biggest UTXO: {utxos[0]}")
+            logger.debug(f"Biggest {coin} UTXO: {utxos[0]}")
+            logger.debug(f"UTXOs for {coin}: {len(utxos)}")
         else:
+            logger.debug(f"No UTXOs found for {coin}")
             logger.debug(utxos_data)
             logger.debug(url)
 
         inputs = []
         value = 0
+        skipped_inputs = 0
         remaining_inputs = len(utxos)
         merge_amount = 800
-        logger.debug(f"consolidating {coin}...")
         if len(utxos) < 20 and rpc.getbalance() > 0.001:
-            logger.debug(f"Less than 20 UTXOs to consolidate {coin}")
+            logger.debug(f"Less than 20 UTXOs to consolidate {coin}, skipping")
             return
+        
+        logger.debug(f"consolidating {coin}...")
         for utxo in utxos:
             if utxo["confirmations"] < 100:
+                skipped_inputs += 1
                 remaining_inputs -= 1
                 continue
             remaining_inputs -= 1
@@ -293,6 +298,8 @@ class NotaryNode:
                 if remaining_inputs < 0: remaining_inputs = 0
                 logger.info(f"{coin} has {remaining_inputs} remaining utxos to process")
                 time.sleep(4)
+        if skipped_inputs > 0:
+            logger.info(f"{skipped_inputs} {coin} UTXOs skipped due to < 100 confs")
 
     def move_wallet(self, coin):
         try:
