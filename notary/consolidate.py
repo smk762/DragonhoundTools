@@ -83,19 +83,25 @@ class NotaryNode:
         for coin in self.coins:
             if coin == "KMD": wallet = f"{self.home}/.komodo/wallet.dat"
             elif coin == "MIL":
-                wallet = f"{self.home}/.mil/{coin}/wallet.dat"
+                wallet = f"{self.home}/.mil/wallet.dat"
+                conf = f"{self.home}/.mil/mil.conf"
             elif coin == "CHIPS":
-                wallet = f"{self.home}/.chips/{coin}/wallet.dat"
+                wallet = f"{self.home}/.chips/wallet.dat"
+                conf = f"{self.home}/.chips/chips.conf"
             elif coin == "AYA":
-                wallet = f"{self.home}/.aryacoin/{coin}/wallet.dat"
+                wallet = f"{self.home}/.aryacoin/wallet.dat"
+                conf = f"{self.home}/.aryacoin/aryacoin.conf"
             elif coin == "EMC":
-                wallet = f"{self.home}/.einsteinium/{coin}/wallet.dat"
-            else: wallet = f"{self.home}/.komodo/{coin}/wallet.dat"
+                wallet = f"{self.home}/.einsteinium/wallet.dat"
+                conf = f"{self.home}/.einsteinium/einsteinium.conf"
+            else:
+                wallet = f"{self.home}/.komodo/{coin}/wallet.dat"
             if coin not in coins_data:
                 coins_data.update({coin: {}})
             coins_data[coin].update({
                 "height": self.get_blockheight(coin),
                 "wallet": wallet,
+                "conf": conf,
                 "oldest_utxo_height": None
             })
         return coins_data
@@ -119,13 +125,13 @@ class NotaryNode:
 
     def get_blockheight(self, coin):
         try:
-            rpc = lib_rpc.def_credentials(coin)
+            rpc = lib_rpc.def_credentials(coin, self.coins_data[coin]["conf"])
             return rpc.getblockcount()
         except Exception as e:
             return None
 
     def import_pk(self, coin):
-        rpc = lib_rpc.def_credentials(coin)
+        rpc = lib_rpc.def_credentials(coin, self.coins_data[coin]["conf"])
         height = self.coins_data[coin]["height"]
         wif = helpers.wif_convert(coin, const.NN_PRIVKEY)
         if not height:
@@ -147,7 +153,7 @@ class NotaryNode:
             return json.loads(f)
 
     def start(self, coin):
-        rpc = lib_rpc.def_credentials(coin)
+        rpc = lib_rpc.def_credentials(coin, self.coins_data[coin]["conf"])
         launch_params = self.launch_params[coin]
         logger.debug(launch_params)
         # check if already running
@@ -168,7 +174,7 @@ class NotaryNode:
 
     def wait_for_start(self, coin):
         i = 0
-        rpc = lib_rpc.def_credentials(coin)
+        rpc = lib_rpc.def_credentials(coin, self.coins_data[coin]["conf"])
         while True:
             try:
                 i += 1
@@ -188,7 +194,7 @@ class NotaryNode:
                 pass
 
     def stop(self, coin):
-        rpc = lib_rpc.def_credentials(coin)
+        rpc = lib_rpc.def_credentials(coin, self.coins_data[coin]["conf"])
         try:
             rpc.stop()
             self.wait_for_stop(coin)
@@ -197,7 +203,7 @@ class NotaryNode:
 
     def wait_for_stop(self, coin):
         i = 0
-        rpc = lib_rpc.def_credentials(coin)
+        rpc = lib_rpc.def_credentials(coin, self.coins_data[coin]["conf"])
         while True:
             try:
                 i += 1
@@ -217,7 +223,7 @@ class NotaryNode:
         time.sleep(10)
 
     def consolidate(self, coin):
-        rpc = lib_rpc.def_credentials(coin)
+        rpc = lib_rpc.def_credentials(coin, self.coins_data[coin]["conf"])
         address = self.get_address(coin)
 
         # get a utxo
@@ -226,7 +232,10 @@ class NotaryNode:
         utxos_data = r.json()["results"]["utxos"]
 
         utxos = sorted(utxos_data, key=lambda d: d['amount'], reverse=True) 
-        logger.debug(f"Biggest UTXO: {utxos[0]}")
+        if len(utxos) > 0:
+            logger.debug(f"Biggest UTXO: {utxos[0]}")
+            logger.debug(utxos_data)
+            logger.debug(url)
 
         inputs = []
         value = 0

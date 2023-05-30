@@ -16,14 +16,15 @@ def def_data_dir():
     return(ac_dir)
 
 # fucntion to define rpc_connection
-def def_credentials(chain):
+def def_credentials(chain, conf_file=None):
     rpcport = '';
     ac_dir = def_data_dir()
-    if chain == 'KMD':
-        coin_config_file = str(ac_dir + '/komodo.conf')
-    else:
-        coin_config_file = str(ac_dir + '/' + chain + '/' + chain + '.conf')
-    with open(coin_config_file, 'r') as f:
+    if not conf_file:
+        if chain == 'KMD':
+            conf_file = str(ac_dir + '/komodo.conf')
+        else:
+            conf_file = str(ac_dir + '/' + chain + '/' + chain + '.conf')
+    with open(conf_file, 'r') as f:
         for line in f:
             l = line.rstrip()
             if re.search('rpcuser', l):
@@ -37,9 +38,9 @@ def def_credentials(chain):
             rpcport = 7771
         else:
             print("rpcport not in conf file, exiting")
-            print("check " + coin_config_file)
+            print("check " + conf_file)
             exit(1)
     try:
         return (Proxy("http://%s:%s@127.0.0.1:%d" % (rpcuser, rpcpassword, int(rpcport)), timeout=90))
     except:
-        print("Unable to set RPC proxy, please confirm rpcuser, rpcpassword and rpcport are set in "+coin_config_file)
+        print("Unable to set RPC proxy, please confirm rpcuser, rpcpassword and rpcport are set in "+conf_file)
