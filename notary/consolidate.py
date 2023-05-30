@@ -81,7 +81,9 @@ class NotaryNode:
     def calc_coins_data(self):
         coins_data = {}
         for coin in self.coins:
-            if coin == "KMD": wallet = f"{self.home}/.komodo/wallet.dat"
+            if coin == "KMD":
+                wallet = f"{self.home}/.komodo/wallet.dat"
+                conf = f"{self.home}/.komodo/komodo.conf"
             elif coin == "MIL":
                 wallet = f"{self.home}/.mil/wallet.dat"
                 conf = f"{self.home}/.mil/mil.conf"
@@ -96,6 +98,7 @@ class NotaryNode:
                 conf = f"{self.home}/.einsteinium/einsteinium.conf"
             else:
                 wallet = f"{self.home}/.komodo/{coin}/wallet.dat"
+                conf = f"{self.home}/.komodo/{coin}/{coin}.conf"
             if coin not in coins_data:
                 coins_data.update({coin: {}})
             coins_data[coin].update({
