@@ -237,6 +237,7 @@ class NotaryNode:
         utxos = sorted(utxos_data, key=lambda d: d['amount'], reverse=True) 
         if len(utxos) > 0:
             logger.debug(f"Biggest UTXO: {utxos[0]}")
+        else:
             logger.debug(utxos_data)
             logger.debug(url)
 
