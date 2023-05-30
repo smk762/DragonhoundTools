@@ -72,7 +72,7 @@ class NotaryNode:
         if not os.path.exists(self.log_path):
             os.makedirs(self.log_path)
         self.pubkey = self.get_pubkey()
-        self.address = self.get_address(self.pubkey)
+        
 
     def get_assetchains(self):
         with open(f"{self.home}/dPoW/iguana/assetchains.json") as file:
@@ -104,7 +104,7 @@ class NotaryNode:
         with open(f"{self.iguana_dir}/pubkey.txt") as f:
             return f.read().replace("pubkey=", "").strip()
 
-    def get_address(self, pubkey):
+    def get_address(self, coin):
         if coin == "MIL":
             bitcoin.params = MIL_CoinParams
         elif coin == "LTC":
@@ -115,7 +115,7 @@ class NotaryNode:
             bitcoin.params = EMC_CoinParams
         else:
             bitcoin.params = KMD_CoinParams
-        return str(P2PKHBitcoinAddress.from_pubkey(x(pubkey)))
+        return str(P2PKHBitcoinAddress.from_pubkey(x(self.pubkey)))
 
     def get_blockheight(self, coin):
         try:
@@ -148,8 +148,8 @@ class NotaryNode:
 
     def start(self, coin):
         rpc = lib_rpc.def_credentials(coin)
-        params = self.launch_params[coin]
-        logger.debug(params)
+        launch_params = self.launch_params[coin]
+        logger.debug(launch_params)
         # check if already running
         try:
             block_height = self.get_blockheight(coin)
@@ -158,9 +158,9 @@ class NotaryNode:
                 return
         except Exception as e:
             logger.error(e)
-        launch = f"{self.home}/komodo/src/komodod {params} -whitelistaddress={self.address} -pubkey={self.pubkey}"
+
         log_output = open(f"{self.log_path}/{coin}_daemon.log",'w+')
-        subprocess.Popen(launch.split(" "), stdout=log_output, stderr=log_output, universal_newlines=True)
+        subprocess.Popen(launch_params.split(" "), stdout=log_output, stderr=log_output, universal_newlines=True)
         time.sleep(3)
         logger.info('{:^60}'.format( f"{coin} daemon starting."))
         logger.info('{:^60}'.format( f"Use 'tail -f {coin}_daemon.log' for mm2 console messages."))
@@ -174,8 +174,8 @@ class NotaryNode:
                 i += 1
                 if i == 20:
                     logger.info(f"Looks like there might be an issue with loading {coin}...")
-                    logger.info(f"We'll try and start it again, but  you need it here are the launch params to do it manually:")
-                    logger.info(' '.join(self.get_launch_params(coin)))
+                    logger.info(f"We'll try and start it again, but if you need it here are the launch params to do it manually:")
+                    logger.info(' '.join(self.launch_params[coin]))
                     # TODO: Send an alert if this happens
                     return False
                 logger.debug(f"Waiting for {coin} daemon to restart...")
@@ -218,6 +218,7 @@ class NotaryNode:
 
     def consolidate(self, coin):
         rpc = lib_rpc.def_credentials(coin)
+        address = self.get_address(coin)
 
         # get a utxo
         url = f"http://stats.kmd.io/api/tools/pubkey_utxos/?coin={coin}&pubkey={self.pubkey}"
@@ -253,11 +254,11 @@ class NotaryNode:
                     if value > 1:
                         vouts = {
                             const.SWEEP_ADDR: value - 1,
-                            self.address: 1
+                            address: 1
                         }
                     else: return
                 else:
-                    vouts = {self.address: value}
+                    vouts = {address: value}
                 try:
                     rawhex = rpc.createrawtransaction(inputs, vouts)
                     #logger.debug(f"rawhex: {rawhex}")
@@ -266,7 +267,7 @@ class NotaryNode:
                     #logger.debug(f"signedhex: {signedhex}")
                     time.sleep(0.1)
                     txid = rpc.sendrawtransaction(signedhex["hex"])
-                    logger.info(f"Sent {value} to {self.address}")
+                    logger.info(f"Sent {value} to {address}")
                     logger.info(f"txid: {txid}")
                     time.sleep(0.1)
                 except Exception as e:
@@ -311,7 +312,7 @@ if __name__ == '__main__':
 
     node = NotaryNode()
     logger.info(f"Pubkey: {node.pubkey}")
-    logger.info(f"Address: {node.address}")
+    logger.info(f"KMD Address: {node.get_address("KMD")}")
     #logger.info(f"Coins: {node.coins}")
     #logger.info(f"Coins data: {node.coins_data}") 
 
