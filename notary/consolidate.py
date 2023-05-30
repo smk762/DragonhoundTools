@@ -375,7 +375,8 @@ if __name__ == '__main__':
             logger.warning("Invalid option. Use 'backup_wallets', 'stop', 'import', or 'refresh'")
     else:
         for coin in node.coins:
-            logger.info(f"\nConsolidating {coin}...")
+            print()
+            logger.info(f"Consolidating {coin}...")
             try:
                 node.consolidate(coin)
             except Exception as e:
