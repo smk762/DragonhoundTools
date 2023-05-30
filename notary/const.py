@@ -20,3 +20,4 @@ SWEEP_ADDR = os.getenv('SWEEP_ADDR') # KMD address to sweep mined funds to
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN') # Telegram bot token
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID') # Telegram chat ID
 NN_PRIVKEY = os.getenv("NN_PRIVKEY") # KMD Privkey of your node
+WHITELIST_ADDRESSES = os.getenv("WHITELIST_ADDRESSES") # Space delimited list of addresses authorised to send you funds

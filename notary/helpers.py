@@ -61,7 +61,7 @@ def get_launch_params():
         launch_params[i] = f"{launch_params[i]} -pubkey={const.PUBKEY}"
         if i == "KMD":
             launch_params[i] = f"{launch_params[i]} -minrelaytxfee=0.000035 -opretmintxfee=0.004 -notary={const.HOME}/.litecoin/litecoin.conf"
-        if i == "KMD" or const.NODE == "Main":
+        if (i == "KMD" or const.NODE == "Main") and const.WHITELIST_ADDRESSES:
             for x in const.WHITELIST_ADDRESSES:
                 launch_params[i] = f"{launch_params[i]} -whitelistaddress={x}"
     return launch_params
