@@ -4,6 +4,7 @@ import requests
 import hashlib
 import binascii
 import base58
+import const
 
 
 def hash160(hexstr):
@@ -52,10 +53,23 @@ def WIF_compressed(byte, raw_privkey):
     return(WIF.decode("utf-8"))
 
 
+def get_launch_params():
+    url = "https://stats.kmd.io/api/info/launch_params/"
+    launch_params = requests.get(url).json()["results"]
+    for i in launch_params:
+        launch_params[i] = launch_params[i].replace("~", const.HOME)
+        launch_params[i] = f"{launch_params[i]} -pubkey={const.PUBKEY}"
+        if i == "KMD":
+            launch_params[i] = f"{launch_params[i]} -minrelaytxfee=0.000035 -opretmintxfee=0.004 -notary={const.HOME}/.litecoin/litecoin.conf"
+        if i == "KMD" or const.NODE == "Main":
+            for x in const.WHITELIST_ADDRESSES:
+                launch_params[i] = f"{launch_params[i]} -whitelistaddress={x}"
+    return launch_params
+
+
 def get_base58_params():
     url = "https://stats.kmd.io/api/info/base_58/"
     return requests.get(url).json()["results"]
-
 
 def get_wiftype(coin):
     params = get_base58_params()
