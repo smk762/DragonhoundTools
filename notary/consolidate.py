@@ -10,14 +10,10 @@ import bitcoin # pip3 install python-bitcoinlib
 from bitcoin.core import x
 from bitcoin.core import CoreMainParams
 from bitcoin.wallet import P2PKHBitcoinAddress
-from dotenv import load_dotenv
 import lib_rpc
+import iguana
+import const
 from logger import logger
-
-load_dotenv()
-
-SWEEP_ADDRESS = os.getenv("SWEEP_ADDRESS")
-NN_PRIVKEY = os.getenv("NN_PRIVKEY")
 
 class KMD_CoinParams(CoreMainParams):
     MESSAGE_START = b'\x24\xe9\x27\x64'
@@ -80,7 +76,7 @@ class NotaryNode:
         if not height:
             height = self.get_blockheight(coin)
         try:
-            return rpc.importprivkey(NN_PRIVKEY, "", True, height)
+            return rpc.importprivkey(const.NN_PRIVKEY, "", True, height)
         except Exception as e:
             print(f"PRIVKEY IMPORT FAILED!: {coin} [{e}]")
 
@@ -195,7 +191,7 @@ class NotaryNode:
         remaining_inputs = len(utxos)
         merge_amount = 800
         logger.debug(f"consolidating {coin}...")
-        if coin == "KMD": address = SWEEP_ADDRESS
+        if coin == "KMD": address = const.SWEEP_ADDRESS
         else: address = self.address
         if len(utxos) > 20 and rpc.getbalance() > 0.01:
             logger.debug(f"Less than 20 UTXOs to consolidate {coin}")
@@ -217,7 +213,7 @@ class NotaryNode:
                 if coin == "KMD":
                     if value > 1:
                         vouts = {
-                            SWEEP_ADDRESS: value - 1,
+                            const.SWEEP_ADDRESS: value - 1,
                             self.address: 1
                         }
                     else: return
