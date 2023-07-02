@@ -83,7 +83,8 @@ class InsightAPI:
         if blockhash:
             url = f'{self.api_url}/rawblock/{blockhash}'
         else:
-            url = f'{self.api_url}/rawblock/{self.blockindex(blockheight)["blockHash"]}'
+            blockhash = self.blockindex_info(blockheight)["blockHash"]
+            url = f'{self.api_url}/rawblock/{blockheight}'
         response = requests.get(url)
         return response.json()
 
@@ -131,7 +132,8 @@ class InsightAPI:
     
     def transactions_block_height(self, blockheight):
         '''Get the transactions for a block with given block height'''
-        url = f'{self.api_url}/txs/?block={self.blockindex(blockheight)["blockHash"]}'
+        blockhash = self.blockindex_info(blockheight)["blockHash"]
+        url = f'{self.api_url}/txs/?block={blockhash}'
         response = requests.get(url)
         return response.json()
     
