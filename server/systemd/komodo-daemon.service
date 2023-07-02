@@ -1,0 +1,21 @@
+[Unit]
+Description=TICKER-daemon
+Wants=network-online.target
+After=network-online.target
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Service]
+StandardOutput=append:/home/USERNAME/logs/TICKER-daemon.log
+StandardError=append:/home/USERNAME/logs/TICKER-daemon.log
+Environment=pubkey=PUBKEY
+User=USERNAME
+Group=USERNAME
+Type=simple
+ExecStart=/usr/local/bin/komodod LAUNCH_PARAMS -pubkey=$pubkey
+WorkingDirectory=/usr/local/bin/
+Restart=on-failure
+RestartSec=10s
+
+[Install]
+WantedBy=multi-user.target
