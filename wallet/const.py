@@ -15,6 +15,8 @@ INSIGHT_EXPLORERS = {
     'KOIN': 'https://koin.explorer.dexstats.info/',
     'MARTY': 'https://marty.dragonhound.info/',
     'MCL': 'https://mcl.explorer.dexstats.info/',
+    'RICK': 'https://rick.explorer.dexstats.info/',
+    'MORTY': 'https://morty.explorer.dexstats.info/',
     'NINJA': 'https://ninja.explorer.dexstats.info/',
     'PIRATE': 'https://explorer.pirate.black/',
     'SUPERNET': 'https://supernet.explorer.dexstats.info/',
