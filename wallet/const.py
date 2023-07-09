@@ -60,3 +60,30 @@ OP_CODES = {
     "OP_DUP": "76"
 }
 
+# Coins constants
+COINS_MAIN = ["PIRATE", "CCL", "CLC", "ILN", "SUPERNET", "DOC", "MARTY", "LTC", "GLEEC", "KOIN", "THC", "KMD", "NINJA"]
+CONF_PATHS = {
+    "main": {
+        "KMD": f"{HOME}/.komodo/komodo.conf",
+        "LTC": f"{HOME}/.litecoin/litecoin.conf",
+    },
+    "3p": {
+        "KMD_3P": f"{HOME}/.komodo_3p/komodo.conf",
+        "VRSC": f"{HOME}/.komodo_3p/VRSC/VRSC.conf",
+        "TOKEL": f"{HOME}/.komodo_3p/TOKEL/TOKEL.conf",
+        "MCL": f"{HOME}/.komodo_3p/MCL/MCL.conf",
+        "AYA": f"{HOME}/.aryacoin/aryacoin.conf",
+        "EMC2": f"{HOME}/.einsteinium/einsteinium.conf",
+        "MIL": f"{HOME}/.mil/mil.conf",
+        "CHIPS": f"{HOME}/.chips/chips.conf"
+    }
+}
+
+# Autopopulate conf paths for all main coins
+[CONF_PATHS["main"].update({coin: f"{HOME}/.komodo/{coin}/{coin}.conf"}) for coin in COINS_MAIN if coin not in ["KMD", "LTC"]]
+DPOW_SERVERS = list(CONF_PATHS.keys())
+COINS_3P = list(CONF_PATHS["3p"].keys())
+DPOW_COINS = COINS_3P + COINS_MAIN
+IMPORT_PRUNED_COINS = ["AYA", "EMC2", "MIL", "CHIPS", "VRSC", "LTC"]
+                      
+LARGE_UTXO_COINS = ["EMC2", "AYA", "MIL"]

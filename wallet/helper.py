@@ -70,3 +70,10 @@ def get_inputs(utxos: list, exclude_utxos: list) -> list:
             logger.debug(utxo)
     value = round(value/100000000, 8)
     return [inputs, value]
+
+
+def get_conf_path(coin):
+    for server in const.CONF_PATHS:
+        if coin in const.CONF_PATHS[server]:
+            return const.CONF_PATHS[server][coin]
+    return ""
