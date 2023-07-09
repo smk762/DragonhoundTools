@@ -35,7 +35,7 @@ def sweep(coin: str, pubkey: str, address: str) -> None:
         if len(inputs) > 0 and len(vouts) > 0:
             print(f"{coin} consolidating {len(inputs)} UTXOs, value: {value}")
             daemon = DaemonRPC(coin)
-            txid = daemon.process_raw_transaction(coin, address, utxos, inputs, vouts)
+            txid = daemon.process_raw_transaction(address, utxos, inputs, vouts)
             if txid != "":
                 explorer_url = daemon.get_explorer_url(txid, 'tx')
                 if explorer_url != "":

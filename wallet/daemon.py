@@ -122,6 +122,8 @@ class DaemonRPC():
         return self.rpc("importprunedfunds", [raw_tx, txoutproof])["result"]
 
     def createrawtransaction(self, inputs, vouts):
+        print(f"input: {inputs[0]}")
+        print(f"vouts: {vouts[0]}")
         return self.rpc("createrawtransaction", [inputs, vouts])["result"]
 
     def signrawtransaction(self, unsignedhex):
@@ -319,7 +321,7 @@ class DaemonRPC():
         return self.rpc("setgenerate", [False])["result"]
 
 
-    def process_raw_transaction(self, address: str, utxos: list, inputs: list, vouts: dict, force=False) -> str:
+    def process_raw_transaction(self, address: str, utxos: list, inputs: list, vouts: dict) -> str:
         unsignedhex = self.createrawtransaction(inputs, vouts)
 
         # Some coins dont allow signrawtransaction,
@@ -330,8 +332,8 @@ class DaemonRPC():
             signedhex = self.signrawtransactionwithwallet(unsignedhex)
         if signedhex is None:
             logger.error(f"{self.coin} Could not signrawtransaction")
-            logger.debug(f"{self.coin} inputs {inputs}")
-            logger.debug(f"{self.coin} vouts {vouts}")
+            #logger.debug(f"{self.coin} inputs {inputs}")
+            #logger.debug(f"{self.coin} vouts {vouts}")
             logger.debug(f"{self.coin} unsignedhex {unsignedhex}")
             return ""
         time.sleep(0.1)
@@ -354,14 +356,14 @@ class DaemonRPC():
                     logger.debug(f"All utxos errored, wont send.")
                 elif len(error_utxos) > 0:
                     logger.debug(f"Removing {len(error_utxos)} Error UTXOs to try again...")
-                    inputs_data = self.get_inputs(utxos, error_utxos, force)
+                    inputs_data = self.get_inputs(utxos, error_utxos)
                     inputs = inputs_data[0]
                     value = inputs_data[1]
                     tx_size = len(inputs) * 100
                     vouts = self.get_vouts(self.coin, address, value, tx_size)
                     if len(inputs) > 0 and len(vouts) > 0:
                         try:
-                            txid = self.process_raw_transaction(self.coin, address, utxos, inputs, vouts, force)
+                            txid = self.process_raw_transaction(address, utxos, inputs, vouts)
                             if txid != "":
                                 explorer_url = self.get_explorer_url(txid, 'tx')
                                 if explorer_url != "":
@@ -375,6 +377,6 @@ class DaemonRPC():
                     else:
                         logger.debug(f"Nothing to send!")
         logger.error(f"{self.coin} Failed with signedhex {signedhex}")
-        logger.error(f"{self.coin} inputs {inputs}")
-        logger.error(f"{self.coin} vouts {vouts}")
+        #logger.error(f"{self.coin} inputs {inputs}")
+        #logger.error(f"{self.coin} vouts {vouts}")
         return ""
