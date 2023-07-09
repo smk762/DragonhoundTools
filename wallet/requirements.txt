@@ -1,0 +1,13 @@
+mnemonic==0.20
+requests==2.31.0
+pytest-cov==4.1.0
+pytest==7.2.1
+flake8==4.0.1
+pytest-flake8==1.1.1
+base58==2.1.1
+python-bitcoinlib==0.12.2
+python-dotenv==1.0.0
+pyTelegramBotAPI==3.7.9
+python-telegram-bot==12.7
+slick-bitcoinrpc==0.1.4
+ecdsa==0.18.0
