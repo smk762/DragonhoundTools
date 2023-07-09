@@ -44,12 +44,10 @@ def get_vouts(coin: str, address: str, value: float, tx_size: int) -> dict:
 
 def get_fee(coin: str, tx_size) -> float:
     if coin in ["LTC"]:
-        fee = tx_size * 0.00000002
-    elif coin in ["EMC", "CHIPS", "AYA"]:
-        if coin in const.LARGE_UTXO_COINS:
-            fee = 0.00010000
-        else:
-            fee = 0.00001000
+        return tx_size * 0.00000002
+    elif coin in ["EMC", "CHIPS", "AYA", "MIL"]:
+        return 0.00010000
+    return 0.00001000
 
 
 def get_inputs(utxos: list, exclude_utxos: list) -> list:
