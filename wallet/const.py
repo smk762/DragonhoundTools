@@ -45,3 +45,18 @@ COMMIT_HASHES_PATH = f"{SCRIPT_PATH}/commit_hashes.json"
 
 SEEDNODE_VERSIONS_URL = "https://raw.githubusercontent.com/KomodoPlatform/dPoW/seednode-update/doc/seed_version_epochs.json"
 SEEDNODE_VERSIONS_PATH = f"{SCRIPT_PATH}/seed_versions.json"
+
+OP_CODES = {
+    "OP_RETURN": "6a",
+    "OP_PUSHDATA1": "4c",
+    "OP_PUSHDATA2": "4d",
+    "OP_CHECKSIG": "ac", 
+    "OP_FALSE": "00",
+    "OP_IF": "63",
+    "OP_NOTIF": "64",
+    "OP_ELSE": "67",
+    "OP_ENDIF": "68",
+    "OP_VERIFY": "69",
+    "OP_DUP": "76"
+}
+

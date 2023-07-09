@@ -46,3 +46,11 @@ def sweep(coin: str, pubkey: str, address: str) -> None:
             time.sleep(0.1)
         else:
             logger.debug(f"{coin} no valid inputs or vouts for")
+
+if __name__ == "__main__":
+    coins = list(INSIGHT_EXPLORERS.keys())
+    coins.sort()
+    pubkey = input("Enter local daemon pubkey: ")
+    address = input("Enter destination address: ")
+    for coin in coins:
+        sweep(coin, pubkey, address)
