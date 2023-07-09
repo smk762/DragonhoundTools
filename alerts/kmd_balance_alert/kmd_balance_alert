@@ -1,0 +1,69 @@
+#!/usr/bin/env python3
+import os
+import sys
+import logging
+import datetime
+import requests
+from datetime import datetime as dt
+
+from dotenv import load_dotenv
+from logging import Handler, Formatter
+
+load_dotenv()
+
+THRESHOLD = 1000
+TELEGRAM_TOKEN = os.getenv('BALANCE_TELEGRAM_TOKEN')
+TELEGRAM_CHAT_ID = os.getenv('BALANCE_TELEGRAM_CHAT_ID')
+
+class RequestsHandler(Handler):
+    def emit(self, record):
+        log_entry = self.format(record)
+        payload = {
+            'chat_id': TELEGRAM_CHAT_ID,
+            'text': log_entry,
+            'parse_mode': 'HTML'
+        }
+        return requests.post("https://api.telegram.org/bot{token}/sendMessage".format(token=TELEGRAM_TOKEN),
+                             data=payload).content
+
+class LogstashFormatter(Formatter):
+    def __init__(self):
+        super(LogstashFormatter, self).__init__()
+
+    def format(self, record):
+        t = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+
+        return "<i>{datetime}</i><pre>\n{message}</pre>".format(message=record.msg, datetime=t)
+
+def get_balance(address):
+    url = f'http://kmd.explorer.dexstats.info/insight-api-komodo/addr/{address}'
+    r = requests.get(url)
+    return r.json()['balance']
+
+def main(address):
+    # Setup logging
+    logger = logging.getLogger('kmd_balance_alert')
+    logger.setLevel(logging.WARNING)
+    handler = RequestsHandler()
+    formatter = LogstashFormatter()
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+
+    # Get address
+    address = os.getenv('KMD_ADDRESS')
+    if not address:
+        if len(sys.argv) > 1:
+            address = sys.argv[1]
+        else:
+            address = input("Enter KMD address: ")
+
+    # Get balance
+    balance = get_balance(address)
+    
+    if balance > THRESHOLD:
+        # Send message
+        msg = f"KMD address {address} balance is {balance}"
+        logger.warning(msg)
+
+if __name__ == '__main__':
+    main()
