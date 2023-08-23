@@ -123,8 +123,10 @@ class DaemonRPC():
 
     def createrawtransaction(self, inputs, vouts):
         print(f"input: {inputs[0]}")
-        print(f"vouts: {vouts[0]}")
-        return self.rpc("createrawtransaction", [inputs, vouts])["result"]
+        print(f"vouts: {vouts}")
+        raw_tx = self.rpc("createrawtransaction", [inputs, vouts])
+        print(raw_tx)
+        return raw_tx["result"]
 
     def signrawtransaction(self, unsignedhex):
         return self.rpc("signrawtransaction", [unsignedhex])["result"]

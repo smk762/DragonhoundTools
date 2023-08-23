@@ -39,7 +39,7 @@ def get_seednode_versions():
 def get_vouts(coin: str, address: str, value: float, tx_size: int) -> dict:
     fee = get_fee(coin, tx_size)
     print(f"{coin} fee: {fee}")
-    return {address: value - fee}
+    return {address: round(value - fee, 8)}
 
 
 def get_fee(coin: str, tx_size) -> float:
