@@ -3,8 +3,6 @@ import os
 import sys
 import json
 import requests
-import asyncio
-from websockets.sync.client import connect
 
 from logger import logger
 from os.path import expanduser, dirname, realpath
