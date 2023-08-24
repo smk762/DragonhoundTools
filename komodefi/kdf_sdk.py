@@ -34,8 +34,8 @@ class KomoDeFi_API():
         if version == "Error":
             logger.warning(f"Komodefi SDK is not running at {self.mm2_ip}!")
             raise SystemExit(1)
-        logger.debug("-"*80)
-        logger.info(f"Komodefi SDK version {self.version} is running at {self.mm2_ip} on netID {self.netid}!")
+        # logger.debug("-"*80)
+        # logger.info(f"Komodefi SDK version {self.version} is running at {self.mm2_ip} on netID {self.netid}!")
            
     def rpc(self, method, params=None, v2=False):
         if not params:
@@ -54,7 +54,7 @@ class KomoDeFi_API():
         r = requests.post(self.mm2_ip, json.dumps(body))
         return r
     
-    def get_activation_params(self, coin: str):
+    def get_activation_params(self, coin: str, network: str):
         url = "http://116.203.120.91:8762/api/atomicdex/activation_commands/"
         data = requests.get(url).json()["commands"]
         if coin in data:

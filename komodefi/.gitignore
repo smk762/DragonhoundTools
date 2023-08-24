@@ -12,6 +12,7 @@ mm2
 libmm2.a
 DB/
 .env
+!methods.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
