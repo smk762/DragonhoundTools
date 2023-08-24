@@ -115,8 +115,9 @@ if __name__ == '__main__':
                     r = activation_time(coin, sync_params, scan_interval * j, scan_chunksize * k)
                     results.append(r)
                     if "outcome" in r:
-                        if r["outcome"]["error"]:
-                            logger.warning(r)
+                        if r["outcome"]:
+                            if "error" in r["outcome"]:
+                                logger.warning(r)
                         else:
                             logger.info(r)
                     else:
