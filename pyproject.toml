@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "dragonhoundtools"
+version = "0.1.0"
+description = "Misc tools for Komodo Ops"
+authors = ["smk <smk@komodoplatform.com>"]
+license = "Dont Be A Dick Public Licence (DBAD)"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+requests = "^2.31.0"
+websockets = "^11.0.3"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^6.2.5"
+black = "^22.3.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
