@@ -1,44 +1,68 @@
 #!/usr/bin/env python3
 import os
+import sys
 import json
 import requests
 from logger import logger
+from os.path import expanduser, dirname, realpath
 
-MM2_JSON_PATH = "MM2.json"
+SCRIPT_PATH = dirname(realpath(__file__))
+
+MM2_JSON_PATH = f"{SCRIPT_PATH}/MM2.json"
 
 class KomoDeFi_API():
-    def __init__(self, config=MM2_JSON_PATH):
-        self.mm2_ip = f'http://127.0.0.1:7783'
-        self.netid = 7777
+    def __init__(self, config: str=MM2_JSON_PATH):
+        ip = '127.0.0.1'
+        port = 7783
+        netid = 7777
         if os.path.isfile(MM2_JSON_PATH):
             with open(MM2_JSON_PATH, "r") as f:
                 conf = json.load(f)
             self.userpass = conf["rpc_password"]
             if "rpc_ip" in conf:
-                self.mm2_ip.replace("127.0.0.1", conf["rpc_ip"])
-            if "rpc_port" in conf:
-                self.mm2_ip.replace("7783", conf["rpc_port"])
+                ip = conf["rpc_ip"]
+            if "rpcport" in conf:
+                port = conf["rpcport"]
             if "netid" in conf:
                 self.netid = conf["netid"]
+            else: self.netid = 7777
+            self.mm2_ip = f"http://{ip}:{port}"
         else:
-            logger.error(f"MM2 config not found at {MM2_JSON_PATH}!")
+            logger.error(f"Komodefi SDK config not found at {MM2_JSON_PATH}!")
             raise SystemExit(1)
-        version = self.version()
+        version = self.version
         if version == "Error":
-            logger.warning(f"MM2 is not running at {self.mm2_ip}!")
+            logger.warning(f"Komodefi SDK is not running at {self.mm2_ip}!")
             raise SystemExit(1)
-        logger.info(f"MM2 is running [{version}] at [{self.mm2_ip}] on netID [{self.netid}]!")
+        logger.debug("-"*80)
+        logger.info(f"Komodefi SDK version {self.version} is running at {self.mm2_ip} on netID {self.netid}!")
            
-    def rpc(self, method, params=None):
+    def rpc(self, method, params=None, v2=False):
         if not params:
             params = {}
-        params.update({
-            "method": method,
-            "userpass": self.userpass
-        })
-        r = requests.post(self.mm2_ip, json.dumps(params))
+        body = {
+            "userpass": self.userpass,
+            "method": method
+        }
+        if v2:
+            body.update({
+                "mmrpc": "2.0",
+                "params": params
+            })
+        elif params:
+            body.update(params)
+        r = requests.post(self.mm2_ip, json.dumps(body))
         return r
-
+    
+    def get_activation_params(self, coin: str):
+        url = "http://116.203.120.91:8762/api/atomicdex/activation_commands/"
+        data = requests.get(url).json()["commands"]
+        if coin in data:
+            return data[coin]
+        else:
+            return None
+        
+    @property
     def version(self):
         try:
             return self.rpc("version").json()["result"]
@@ -48,5 +72,4 @@ class KomoDeFi_API():
 
 if __name__ == '__main__':
     api = KomoDeFi_API()
-    print(api.version())
     
